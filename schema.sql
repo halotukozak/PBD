@@ -1,297 +1,360 @@
-CREATE TABLE [Student]
+-- Drop all foreign keys
+DECLARE @Sql NVARCHAR(MAX) = '';
+SELECT @Sql += 'ALTER TABLE ' + table_name + ' DROP CONSTRAINT ' + constraint_name + ';'
+FROM information_schema.table_constraints
+WHERE constraint_type = 'FOREIGN KEY';
+
+-- Execute the generated statements
+EXEC sp_executesql @Sql;
+
+-- Drop all tables
+SET @Sql = '';
+SELECT @Sql += 'DROP TABLE ' + table_name + ';'
+FROM information_schema.tables
+WHERE table_type = 'BASE TABLE';
+
+-- Execute the generated DROP TABLE statements
+EXEC sp_executesql @Sql;
+
+
+CREATE TABLE Student
 (
-    [id]      int         NOT NULL,
-    [name]    varchar(50) NOT NULL,
-    [surname] varchar(50) NOT NULL,
-    [adress]  varchar(50) NOT NULL,
-    PRIMARY KEY ([id])
+    id      int          NOT NULL,
+    name    varchar(50)  NOT NULL,
+    surname varchar(50)  NOT NULL,
+    address varchar(200) NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [Teacher]
+CREATE TABLE Teacher
 (
-    [id]      int,
-    [name]    varchar(50) NOT NULL,
-    [surname] varchar(50) NOT NULL
+    id      int         NOT NULL,
+    name    varchar(50) NOT NULL,
+    surname varchar(50) NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [StudentWebinar]
+CREATE TABLE StudentWebinar
 (
-    [student_id]   int,
-    [webinar_id]   int,
-    [payment_date] date
+    student_id   int  NOT NULL,
+    webinar_id   int  NOT NULL,
+    payment_date date NOT NULL,
+
+    PRIMARY KEY (student_id, webinar_id)
 )
 
-CREATE TABLE [Translator]
+CREATE TABLE Translator
 (
-    [id]       int,
-    [language] varchar(50)
+    id       int         NOT NULL,
+    language varchar(50) NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [Webinar]
+CREATE TABLE Webinar
 (
-    [id]            int,
-    [price]         float,
-    [date]          date,
-    [url]           varchar(50),
-    [language]      varchar(50) DEFAULT 'Polish',
-    [translator_id] int,
-    [teacher_id]    int
+    id            int                          NOT NULL,
+    price         float                        NOT NULL,
+    date          date                         NOT NULL,
+    url           varchar(50)                  NOT NULL,
+    language      varchar(50) DEFAULT 'Polish' NOT NULL,
+    translator_id int                          NOT NULL,
+    teacher_id    int                          NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [StudentCourse]
+CREATE TABLE StudentCourse
 (
-    [student_id]            int,
-    [course_id]             int,
-    [advance_payment_date]  date,
-    [full_payment_date]     date,
-    [credit_date]           date,
-    [certificate_post_date] date
+    student_id            int  NOT NULL,
+    course_id             int  NOT NULL,
+    advance_payment_date  date NOT NULL,
+    full_payment_date     date NOT NULL,
+    credit_date           date NOT NULL,
+    certificate_post_date date NOT NULL,
+
+    PRIMARY KEY (student_id, course_id)
 )
 
-CREATE TABLE [Course]
+CREATE TABLE Course
 (
-    [id]            int,
-    [price]         float,
-    [advance_price] float,
-    [subject]       varchar(50),
-    [language]      varchar(50) DEFAULT 'Polish',
-    [student_limit] int
+    id            int                          NOT NULL,
+    price         float                        NOT NULL,
+    advance_price float                        NOT NULL,
+    subject       varchar(100)                 NOT NULL,
+    language      varchar(50) DEFAULT 'Polish' NOT NULL,
+    student_limit int                          NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [Module]
+CREATE TABLE Module
 (
-    [id]         int,
-    [course_id]  int,
-    [type]       nvarchar(255) NOT NULL CHECK ([type] IN ('online_sync', 'online_async', 'inperson', 'hybrid')),
-    [room_id]    int,
-    [teacher_id] int
+    id         int           NOT NULL,
+    course_id  int           NOT NULL,
+    type       nvarchar(255) NOT NULL CHECK (type IN ('online_sync', 'online_async', 'inperson', 'hybrid')),
+    room_id    int           NOT NULL,
+    teacher_id int           NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [StudentMeetingAttendance]
+CREATE TABLE StudentMeetingAttendance
 (
-    [student_id] int,
-    [meeting_id] int
+    student_id int NOT NULL,
+    meeting_id int NOT NULL,
+
+    PRIMARY KEY (student_id, meeting_id)
 )
 
-CREATE TABLE [StudentSemester]
+CREATE TABLE StudentSemester
 (
-    [student_id]   int,
-    [semester_id]  int,
-    [payment_date] date
+    student_id   int  NOT NULL,
+    semester_id  int  NOT NULL,
+    payment_date date NOT NULL,
+
+    PRIMARY KEY (student_id, semester_id)
 )
 
-CREATE TABLE [StudentStudies]
+CREATE TABLE StudentStudies
 (
-    [student_id]                int,
-    [studies_id]                int,
-    [registration_payment_date] date,
-    [certificate_post_date]     date
+    student_id                int  NOT NULL,
+    studies_id                int  NOT NULL,
+    registration_payment_date date NOT NULL,
+    certificate_post_date     date NOT NULL,
+
+    PRIMARY KEY (student_id, studies_id)
 )
 
-CREATE TABLE [Studies]
+CREATE TABLE Studies
 (
-    [id]            int,
-    [syllabus]      varchar(50),
-    [price]         float,
-    [advance_price] float,
-    [language]      varchar(50),
-    [student_limit] int
+    id            int           NOT NULL,
+    syllabus      varchar(1000) NOT NULL,
+    price         float         NOT NULL,
+    advance_price float         NOT NULL,
+    language      varchar(50)   NOT NULL,
+    student_limit int           NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [Semester]
+CREATE TABLE Semester
 (
-    [id]         int,
-    [number]     int,
-    [studies_id] int,
-    [schedule]   varchar(50)
+    id         int         NOT NULL,
+    number     int         NOT NULL,
+    studies_id int         NOT NULL,
+    schedule   varchar(50) NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [Subject]
+CREATE TABLE Subject
 (
-    [id]          int,
-    [name]        varchar(50),
-    [semester_id] int,
-    [teacher_id]  int
+    id          int          NOT NULL,
+    name        varchar(200) NOT NULL,
+    semester_id int          NOT NULL,
+    teacher_id  int          NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [Internship]
+CREATE TABLE Internship
 (
-    [id]         int,
-    [studies_id] int,
-    [date]       date
+    id         int  NOT NULL,
+    studies_id int  NOT NULL,
+    date       date NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [InternshipAttendence]
+CREATE TABLE InternshipAttendence
 (
-    [student_id]    int,
-    [internship_id] int,
-    [attended_days] int
+    student_id    int NOT NULL,
+    internship_id int NOT NULL,
+    attended_days int NOT NULL,
+
+    PRIMARY KEY (student_id, internship_id)
 )
 
-CREATE TABLE [InternshipExam]
+CREATE TABLE InternshipExam
 (
-    [internship_id] int,
-    [student_id]    int,
-    [result]        int
+    student_id    int NOT NULL,
+    internship_id int NOT NULL,
+    result        int NOT NULL,
+
+    PRIMARY KEY (student_id, internship_id)
 )
 
-CREATE TABLE [StudentMeeting]
+CREATE TABLE StudentMeeting
 (
-    [student_id]   int,
-    [meeting_id]   int,
-    [payment_date] date
+    student_id   int NOT NULL,
+    meeting_id   int NOT NULL,
+    payment_date date
+        PRIMARY KEY (student_id, meeting_id)
 )
 
-CREATE TABLE [Room]
+CREATE TABLE Room
 (
-    [id]      int,
-    [number]  varchar(50),
-    [bulding] varchar(50)
+    id      int         NOT NULL,
+    number  varchar(10) NOT NULL,
+    bulding varchar(50) NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [Meeting]
+CREATE TABLE Meeting
 (
-    [id]                      int,
-    [module_id]               int,
-    [subject_id]              int,
-    [url]                     varchar(50),
-    [date]                    date,
-    [type]                    nvarchar(255) NOT NULL CHECK ([type] IN ('inperson', 'online', 'video')),
-    [standalone_price]        float,
-    [translator_id]           int,
-    [substituting_teacher_id] int,
-    [student_limit]           int
+    id                      int          NOT NULL,
+    module_id               int          NOT NULL,
+    subject_id              int          NOT NULL,
+    url                     varchar(200) NOT NULL,
+    date                    date         NOT NULL,
+    type                    nvarchar(10) NOT NULL CHECK (type IN ('inperson', 'online', 'video')),
+    standalone_price        float        NOT NULL,
+    translator_id           int          NOT NULL,
+    substituting_teacher_id int          NOT NULL,
+    student_limit           int          NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [Basket]
+CREATE TABLE Basket
 (
-    [id]           int,
-    [student_id]   int,
-    [payment_url]  varchar(50),
-    [state]        nvarchar(255) NOT NULL CHECK ([state] IN
-                                                 ('open', 'pending_payment', 'success_payment', 'failed_payment')),
-    [create_date]  date,
-    [payment_date] date
+    id           int           NOT NULL,
+    student_id   int           NOT NULL,
+    payment_url  varchar(50)   NOT NULL,
+    state        nvarchar(255) NOT NULL CHECK (state IN
+                                               ('open', 'pending_payment', 'success_payment', 'failed_payment')),
+    create_date  date          NOT NULL,
+    payment_date date          NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-CREATE TABLE [BasketItem]
+CREATE TABLE BasketItem
 (
-    [basket_id]  int,
-    [course_id]  int,
-    [meeting_id] int,
-    [studies_id] int,
-    [webinar_id] int
+    basket_id  int NOT NULL,
+    course_id  int NOT NULL,
+    meeting_id int,
+    studies_id int,
+    webinar_id int,
+
+    PRIMARY KEY (basket_id, course_id)
 )
 
-CREATE TABLE [Parameter]
+CREATE TABLE Parameter
 (
-    [id]    int,
-    [type]  varchar(50),
-    [value] varchar(50),
-    [date]  date
+    id    int         NOT NULL,
+    type  varchar(50) NOT NULL,
+    value varchar(50) NOT NULL,
+    date  date        NOT NULL,
+
+    PRIMARY KEY (id)
 )
 
-ALTER TABLE [StudentWebinar]
-    ADD FOREIGN KEY ([student_id]) REFERENCES [Student] ([id])
+ALTER TABLE StudentWebinar
+    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
 
-ALTER TABLE [StudentWebinar]
-    ADD FOREIGN KEY ([webinar_id]) REFERENCES [Webinar] ([id])
+ALTER TABLE StudentWebinar
+    ADD FOREIGN KEY (webinar_id) REFERENCES Webinar (id)
 
-ALTER TABLE [Webinar]
-    ADD FOREIGN KEY ([translator_id]) REFERENCES [Translator] ([id])
+ALTER TABLE Webinar
+    ADD FOREIGN KEY (translator_id) REFERENCES Translator (id)
 
-ALTER TABLE [Webinar]
-    ADD FOREIGN KEY ([teacher_id]) REFERENCES [Teacher] ([id])
+ALTER TABLE Webinar
+    ADD FOREIGN KEY (teacher_id) REFERENCES Teacher (id)
 
-ALTER TABLE [StudentCourse]
-    ADD FOREIGN KEY ([student_id]) REFERENCES [Student] ([id])
+ALTER TABLE StudentCourse
+    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
 
-ALTER TABLE [StudentCourse]
-    ADD FOREIGN KEY ([course_id]) REFERENCES [Course] ([id])
+ALTER TABLE StudentCourse
+    ADD FOREIGN KEY (course_id) REFERENCES Course (id)
 
-ALTER TABLE [Module]
-    ADD FOREIGN KEY ([course_id]) REFERENCES [Course] ([id])
+ALTER TABLE Module
+    ADD FOREIGN KEY (course_id) REFERENCES Course (id)
 
-ALTER TABLE [Module]
-    ADD FOREIGN KEY ([room_id]) REFERENCES [Room] ([id])
+ALTER TABLE Module
+    ADD FOREIGN KEY (room_id) REFERENCES Room (id)
 
-ALTER TABLE [Module]
-    ADD FOREIGN KEY ([teacher_id]) REFERENCES [Teacher] ([id])
+ALTER TABLE Module
+    ADD FOREIGN KEY (teacher_id) REFERENCES Teacher (id)
 
-ALTER TABLE [StudentMeetingAttendance]
-    ADD FOREIGN KEY ([student_id]) REFERENCES [Student] ([id])
+ALTER TABLE StudentMeetingAttendance
+    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
 
-ALTER TABLE [StudentMeetingAttendance]
-    ADD FOREIGN KEY ([meeting_id]) REFERENCES [Meeting] ([id])
+ALTER TABLE StudentMeetingAttendance
+    ADD FOREIGN KEY (meeting_id) REFERENCES Meeting (id)
 
-ALTER TABLE [StudentSemester]
-    ADD FOREIGN KEY ([student_id]) REFERENCES [Student] ([id])
+ALTER TABLE StudentSemester
+    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
 
-ALTER TABLE [StudentSemester]
-    ADD FOREIGN KEY ([semester_id]) REFERENCES [Semester] ([id])
+ALTER TABLE StudentSemester
+    ADD FOREIGN KEY (semester_id) REFERENCES Semester (id)
 
-ALTER TABLE [StudentStudies]
-    ADD FOREIGN KEY ([student_id]) REFERENCES [Student] ([id])
+ALTER TABLE StudentStudies
+    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
 
-ALTER TABLE [StudentStudies]
-    ADD FOREIGN KEY ([studies_id]) REFERENCES [Studies] ([id])
+ALTER TABLE StudentStudies
+    ADD FOREIGN KEY (studies_id) REFERENCES Studies (id)
 
-ALTER TABLE [Semester]
-    ADD FOREIGN KEY ([studies_id]) REFERENCES [Studies] ([id])
+ALTER TABLE Semester
+    ADD FOREIGN KEY (studies_id) REFERENCES Studies (id)
 
-ALTER TABLE [Subject]
-    ADD FOREIGN KEY ([semester_id]) REFERENCES [Semester] ([id])
+ALTER TABLE Subject
+    ADD FOREIGN KEY (semester_id) REFERENCES Semester (id)
 
-ALTER TABLE [Subject]
-    ADD FOREIGN KEY ([teacher_id]) REFERENCES [Teacher] ([id])
+ALTER TABLE Subject
+    ADD FOREIGN KEY (teacher_id) REFERENCES Teacher (id)
 
-ALTER TABLE [Internship]
-    ADD FOREIGN KEY ([studies_id]) REFERENCES [Studies] ([id])
+ALTER TABLE Internship
+    ADD FOREIGN KEY (studies_id) REFERENCES Studies (id)
 
-ALTER TABLE [InternshipAttendence]
-    ADD FOREIGN KEY ([student_id]) REFERENCES [Student] ([id])
+ALTER TABLE InternshipAttendence
+    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
 
-ALTER TABLE [InternshipAttendence]
-    ADD FOREIGN KEY ([internship_id]) REFERENCES [Internship] ([id])
+ALTER TABLE InternshipAttendence
+    ADD FOREIGN KEY (internship_id) REFERENCES Internship (id)
 
-ALTER TABLE [InternshipExam]
-    ADD FOREIGN KEY ([internship_id]) REFERENCES [Internship] ([id])
+ALTER TABLE InternshipExam
+    ADD FOREIGN KEY (internship_id) REFERENCES Internship (id)
 
-ALTER TABLE [InternshipExam]
-    ADD FOREIGN KEY ([student_id]) REFERENCES [Student] ([id])
+ALTER TABLE InternshipExam
+    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
 
-ALTER TABLE [StudentMeeting]
-    ADD FOREIGN KEY ([student_id]) REFERENCES [Student] ([id])
+ALTER TABLE StudentMeeting
+    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
 
-ALTER TABLE [StudentMeeting]
-    ADD FOREIGN KEY ([meeting_id]) REFERENCES [Meeting] ([id])
+ALTER TABLE StudentMeeting
+    ADD FOREIGN KEY (meeting_id) REFERENCES Meeting (id)
 
-ALTER TABLE [Meeting]
-    ADD FOREIGN KEY ([module_id]) REFERENCES [Module] ([id])
+ALTER TABLE Meeting
+    ADD FOREIGN KEY (module_id) REFERENCES Module (id)
 
-ALTER TABLE [Meeting]
-    ADD FOREIGN KEY ([subject_id]) REFERENCES [Subject] ([id])
+ALTER TABLE Meeting
+    ADD FOREIGN KEY (subject_id) REFERENCES Subject (id)
 
-ALTER TABLE [Meeting]
-    ADD FOREIGN KEY ([translator_id]) REFERENCES [Translator] ([id])
+ALTER TABLE Meeting
+    ADD FOREIGN KEY (translator_id) REFERENCES Translator (id)
 
-ALTER TABLE [Meeting]
-    ADD FOREIGN KEY ([substituting_teacher_id]) REFERENCES [Teacher] ([id])
+ALTER TABLE Meeting
+    ADD FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id)
 
-ALTER TABLE [Basket]
-    ADD FOREIGN KEY ([student_id]) REFERENCES [Student] ([id])
+ALTER TABLE Basket
+    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
 
-ALTER TABLE [BasketItem]
-    ADD FOREIGN KEY ([basket_id]) REFERENCES [Basket] ([id])
+ALTER TABLE BasketItem
+    ADD FOREIGN KEY (basket_id) REFERENCES Basket (id)
 
-ALTER TABLE [BasketItem]
-    ADD FOREIGN KEY ([course_id]) REFERENCES [Course] ([id])
+ALTER TABLE BasketItem
+    ADD FOREIGN KEY (course_id) REFERENCES Course (id)
 
-ALTER TABLE [BasketItem]
-    ADD FOREIGN KEY ([meeting_id]) REFERENCES [Meeting] ([id])
+ALTER TABLE BasketItem
+    ADD FOREIGN KEY (meeting_id) REFERENCES Meeting (id)
 
-ALTER TABLE [BasketItem]
-    ADD FOREIGN KEY ([studies_id]) REFERENCES [Studies] ([id])
+ALTER TABLE BasketItem
+    ADD FOREIGN KEY (studies_id) REFERENCES Studies (id)
 
-ALTER TABLE [BasketItem]
-    ADD FOREIGN KEY ([webinar_id]) REFERENCES [Webinar] ([id])
+ALTER TABLE BasketItem
+    ADD FOREIGN KEY (webinar_id) REFERENCES Webinar (id)
