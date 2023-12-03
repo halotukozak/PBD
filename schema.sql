@@ -1,5 +1,5 @@
 -- Drop all foreign keys
-DECLARE @Sql NVARCHAR(MAX) = '';
+DECLARE @Sql VARCHAR(MAX) = '';
 SELECT @Sql += 'ALTER TABLE ' + table_name + ' DROP CONSTRAINT ' + constraint_name + ';'
 FROM information_schema.table_constraints
 WHERE constraint_type = 'FOREIGN KEY';
@@ -19,7 +19,7 @@ EXEC sp_executesql @Sql;
 
 CREATE TABLE Student
 (
-    id      int          NOT NULL,
+    id      int          NOT NULL IDENTITY (1, 1),
     name    varchar(50)  NOT NULL,
     surname varchar(50)  NOT NULL,
     address varchar(200) NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE Student
 
 CREATE TABLE Teacher
 (
-    id      int         NOT NULL,
+    id      int         NOT NULL IDENTITY (1, 1),
     name    varchar(50) NOT NULL,
     surname varchar(50) NOT NULL,
 
@@ -38,7 +38,7 @@ CREATE TABLE Teacher
 
 CREATE TABLE Translator
 (
-    id       int         NOT NULL,
+    id       int         NOT NULL IDENTITY (1, 1),
     language varchar(50) NOT NULL,
 
     PRIMARY KEY (id),
@@ -46,10 +46,10 @@ CREATE TABLE Translator
 
 CREATE TABLE Webinar
 (
-    id            int                          NOT NULL,
+    id            int                          NOT NULL IDENTITY (1, 1),
     price         float                        NOT NULL,
     date          date                         NOT NULL,
-    url           varchar(50)                  NOT NULL,
+    url           varchar(200)                  NOT NULL,
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
     translator_id int                          NOT NULL,
     teacher_id    int                          NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE StudentWebinar
 
 CREATE TABLE Course
 (
-    id            int                          NOT NULL,
+    id            int                          NOT NULL IDENTITY (1, 1),
     price         float                        NOT NULL,
     advance_price float                        NOT NULL,
     subject       varchar(100)                 NOT NULL,
@@ -101,7 +101,7 @@ CREATE TABLE StudentCourse
 
 CREATE TABLE Room
 (
-    id       int         NOT NULL,
+    id       int         NOT NULL IDENTITY (1, 1),
     number   varchar(10) NOT NULL,
     building varchar(50) NOT NULL,
 
@@ -110,9 +110,9 @@ CREATE TABLE Room
 
 CREATE TABLE Module
 (
-    id         int           NOT NULL,
+    id         int           NOT NULL IDENTITY (1, 1),
     course_id  int           NOT NULL,
-    type       nvarchar(255) NOT NULL CHECK (type IN ('online_sync', 'online_async', 'inperson', 'hybrid')),
+    type       varchar(15) NOT NULL,
     room_id    int           NOT NULL,
     teacher_id int           NOT NULL,
 
@@ -121,6 +121,8 @@ CREATE TABLE Module
     FOREIGN KEY (course_id) REFERENCES Course (id),
     FOREIGN KEY (room_id) REFERENCES Room (id),
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id),
+
+    CHECK (type IN ('online_sync', 'online_async', 'inperson', 'hybrid'))
 )
 
 CREATE TABLE StudentMeetingAttendance
@@ -133,7 +135,7 @@ CREATE TABLE StudentMeetingAttendance
 
 CREATE TABLE Studies
 (
-    id            int           NOT NULL,
+    id            int           NOT NULL IDENTITY (1, 1),
     syllabus      varchar(1000) NOT NULL,
     price         float         NOT NULL,
     advance_price float         NOT NULL,
@@ -145,7 +147,7 @@ CREATE TABLE Studies
 
 CREATE TABLE Semester
 (
-    id         int         NOT NULL,
+    id         int         NOT NULL IDENTITY (1, 1),
     number     int         NOT NULL,
     studies_id int         NOT NULL,
     schedule   varchar(50) NOT NULL,
@@ -182,7 +184,7 @@ CREATE TABLE StudentStudies
 
 CREATE TABLE Subject
 (
-    id          int          NOT NULL,
+    id          int          NOT NULL IDENTITY (1, 1),
     name        varchar(200) NOT NULL,
     semester_id int          NOT NULL,
     teacher_id  int          NOT NULL,
@@ -192,7 +194,7 @@ CREATE TABLE Subject
 
 CREATE TABLE Internship
 (
-    id         int  NOT NULL,
+    id         int  NOT NULL IDENTITY (1, 1),
     studies_id int  NOT NULL,
     date       date NOT NULL,
 
@@ -226,12 +228,12 @@ CREATE TABLE InternshipExam
 
 CREATE TABLE Meeting
 (
-    id                      int          NOT NULL,
+    id                      int          NOT NULL IDENTITY (1, 1),
     module_id               int          NOT NULL,
     subject_id              int          NOT NULL,
     url                     varchar(200) NOT NULL,
     date                    date         NOT NULL,
-    type                    nvarchar(10) NOT NULL CHECK (type IN ('inperson', 'online', 'video')),
+    type                    varchar(10) NOT NULL,
     standalone_price        float        NOT NULL,
     translator_id           int          NOT NULL,
     substituting_teacher_id int          NOT NULL,
@@ -243,6 +245,8 @@ CREATE TABLE Meeting
     FOREIGN KEY (subject_id) REFERENCES Subject (id),
     FOREIGN KEY (translator_id) REFERENCES Translator (id),
     FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id),
+
+    CHECK (type IN ('inperson', 'online', 'video'))
 )
 
 CREATE TABLE StudentMeeting
@@ -259,17 +263,18 @@ CREATE TABLE StudentMeeting
 
 CREATE TABLE Basket
 (
-    id           int           NOT NULL,
+    id           int           NOT NULL IDENTITY (1, 1),
     student_id   int           NOT NULL,
-    payment_url  varchar(50)   NOT NULL,
-    state        nvarchar(255) NOT NULL CHECK (state IN
-                                               ('open', 'pending_payment', 'success_payment', 'failed_payment')),
+    payment_url  varchar(200)   NOT NULL,
+    state        varchar(15) NOT NULL,
     create_date  date          NOT NULL,
     payment_date date          NOT NULL,
 
     PRIMARY KEY (id),
 
     FOREIGN KEY (student_id) REFERENCES Student (id),
+
+    CHECK (state IN ('open', 'pending_payment', 'success_payment', 'failed_payment'))
 )
 
 CREATE TABLE BasketItem
@@ -280,6 +285,7 @@ CREATE TABLE BasketItem
     studies_id int,
     webinar_id int,
 
+--     nwm wsm jak to z nullami wygląda, pasowałoby na prodzie sprawdzić
     PRIMARY KEY (basket_id, course_id, meeting_id, studies_id, webinar_id),
 
     FOREIGN KEY (basket_id) REFERENCES Basket (id),
@@ -287,11 +293,18 @@ CREATE TABLE BasketItem
     FOREIGN KEY (meeting_id) REFERENCES Meeting (id),
     FOREIGN KEY (studies_id) REFERENCES Studies (id),
     FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
+
+    CHECK (
+            (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NOT NULL) OR
+            (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NOT NULL AND webinar_id IS NULL) OR
+            (course_id IS NULL AND meeting_id IS NOT NULL AND studies_id IS NULL AND webinar_id IS NULL) OR
+            (course_id IS NOT NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NULL)
+        )
 )
 
 CREATE TABLE Parameter
 (
-    id    int         NOT NULL,
+    id    int         NOT NULL IDENTITY (1, 1),
     type  varchar(50) NOT NULL,
     value varchar(50) NOT NULL,
     date  date        NOT NULL,
