@@ -36,18 +36,6 @@ CREATE TABLE Teacher
     PRIMARY KEY (id),
 )
 
-CREATE TABLE StudentWebinar
-(
-    student_id   int  NOT NULL,
-    webinar_id   int  NOT NULL,
-    payment_date date NOT NULL,
-
-    PRIMARY KEY (student_id, webinar_id),
-
-    FOREIGN KEY (student_id) REFERENCES Student (id),
-    FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
-)
-
 CREATE TABLE Translator
 (
     id       int         NOT NULL,
@@ -72,6 +60,30 @@ CREATE TABLE Webinar
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id),
 )
 
+CREATE TABLE StudentWebinar
+(
+    student_id   int  NOT NULL,
+    webinar_id   int  NOT NULL,
+    payment_date date NOT NULL,
+
+    PRIMARY KEY (student_id, webinar_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id),
+    FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
+)
+
+CREATE TABLE Course
+(
+    id            int                          NOT NULL,
+    price         float                        NOT NULL,
+    advance_price float                        NOT NULL,
+    subject       varchar(100)                 NOT NULL,
+    language      varchar(50) DEFAULT 'Polish' NOT NULL,
+    student_limit int                          NOT NULL,
+
+    PRIMARY KEY (id),
+)
+
 CREATE TABLE StudentCourse
 (
     student_id            int  NOT NULL,
@@ -87,14 +99,11 @@ CREATE TABLE StudentCourse
     FOREIGN KEY (course_id) REFERENCES Course (id),
 )
 
-CREATE TABLE Course
+CREATE TABLE Room
 (
-    id            int                          NOT NULL,
-    price         float                        NOT NULL,
-    advance_price float                        NOT NULL,
-    subject       varchar(100)                 NOT NULL,
-    language      varchar(50) DEFAULT 'Polish' NOT NULL,
-    student_limit int                          NOT NULL,
+    id       int         NOT NULL,
+    number   varchar(10) NOT NULL,
+    building varchar(50) NOT NULL,
 
     PRIMARY KEY (id),
 )
@@ -122,6 +131,30 @@ CREATE TABLE StudentMeetingAttendance
     PRIMARY KEY (student_id, meeting_id),
 )
 
+CREATE TABLE Studies
+(
+    id            int           NOT NULL,
+    syllabus      varchar(1000) NOT NULL,
+    price         float         NOT NULL,
+    advance_price float         NOT NULL,
+    language      varchar(50)   NOT NULL,
+    student_limit int           NOT NULL,
+
+    PRIMARY KEY (id),
+)
+
+CREATE TABLE Semester
+(
+    id         int         NOT NULL,
+    number     int         NOT NULL,
+    studies_id int         NOT NULL,
+    schedule   varchar(50) NOT NULL,
+
+    PRIMARY KEY (id),
+
+    FOREIGN KEY (studies_id) REFERENCES Studies (id),
+)
+
 CREATE TABLE StudentSemester
 (
     student_id   int  NOT NULL,
@@ -144,30 +177,6 @@ CREATE TABLE StudentStudies
     PRIMARY KEY (student_id, studies_id),
 
     FOREIGN KEY (student_id) REFERENCES Student (id),
-    FOREIGN KEY (studies_id) REFERENCES Studies (id),
-)
-
-CREATE TABLE Studies
-(
-    id            int           NOT NULL,
-    syllabus      varchar(1000) NOT NULL,
-    price         float         NOT NULL,
-    advance_price float         NOT NULL,
-    language      varchar(50)   NOT NULL,
-    student_limit int           NOT NULL,
-
-    PRIMARY KEY (id),
-)
-
-CREATE TABLE Semester
-(
-    id         int         NOT NULL,
-    number     int         NOT NULL,
-    studies_id int         NOT NULL,
-    schedule   varchar(50) NOT NULL,
-
-    PRIMARY KEY (id),
-
     FOREIGN KEY (studies_id) REFERENCES Studies (id),
 )
 
@@ -215,27 +224,6 @@ CREATE TABLE InternshipExam
     FOREIGN KEY (internship_id) REFERENCES Internship (id),
 )
 
-CREATE TABLE StudentMeeting
-(
-    student_id   int NOT NULL,
-    meeting_id   int NOT NULL,
-    payment_date date,
-
-    PRIMARY KEY (student_id, meeting_id),
-
-    FOREIGN KEY (student_id) REFERENCES Student (id),
-    FOREIGN KEY (meeting_id) REFERENCES Meeting (id),
-)
-
-CREATE TABLE Room
-(
-    id       int         NOT NULL,
-    number   varchar(10) NOT NULL,
-    building varchar(50) NOT NULL,
-
-    PRIMARY KEY (id),
-)
-
 CREATE TABLE Meeting
 (
     id                      int          NOT NULL,
@@ -255,6 +243,18 @@ CREATE TABLE Meeting
     FOREIGN KEY (subject_id) REFERENCES Subject (id),
     FOREIGN KEY (translator_id) REFERENCES Translator (id),
     FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id),
+)
+
+CREATE TABLE StudentMeeting
+(
+    student_id   int NOT NULL,
+    meeting_id   int NOT NULL,
+    payment_date date,
+
+    PRIMARY KEY (student_id, meeting_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id),
+    FOREIGN KEY (meeting_id) REFERENCES Meeting (id),
 )
 
 CREATE TABLE Basket
