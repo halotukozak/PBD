@@ -42,8 +42,10 @@ CREATE TABLE StudentWebinar
     webinar_id   int  NOT NULL,
     payment_date date NOT NULL,
 
-    PRIMARY KEY (student_id, webinar_id)
     PRIMARY KEY (student_id, webinar_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id),
+    FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
 )
 
 CREATE TABLE Translator
@@ -65,6 +67,9 @@ CREATE TABLE Webinar
     teacher_id    int                          NOT NULL,
 
     PRIMARY KEY (id),
+
+    FOREIGN KEY (translator_id) REFERENCES Translator (id),
+    FOREIGN KEY (teacher_id) REFERENCES Teacher (id),
 )
 
 CREATE TABLE StudentCourse
@@ -77,6 +82,9 @@ CREATE TABLE StudentCourse
     certificate_post_date date NOT NULL,
 
     PRIMARY KEY (student_id, course_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id),
+    FOREIGN KEY (course_id) REFERENCES Course (id),
 )
 
 CREATE TABLE Course
@@ -100,6 +108,10 @@ CREATE TABLE Module
     teacher_id int           NOT NULL,
 
     PRIMARY KEY (id),
+
+    FOREIGN KEY (course_id) REFERENCES Course (id),
+    FOREIGN KEY (room_id) REFERENCES Room (id),
+    FOREIGN KEY (teacher_id) REFERENCES Teacher (id),
 )
 
 CREATE TABLE StudentMeetingAttendance
@@ -117,6 +129,9 @@ CREATE TABLE StudentSemester
     payment_date date NOT NULL,
 
     PRIMARY KEY (student_id, semester_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id),
+    FOREIGN KEY (semester_id) REFERENCES Semester (id),
 )
 
 CREATE TABLE StudentStudies
@@ -127,6 +142,9 @@ CREATE TABLE StudentStudies
     certificate_post_date     date NOT NULL,
 
     PRIMARY KEY (student_id, studies_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id),
+    FOREIGN KEY (studies_id) REFERENCES Studies (id),
 )
 
 CREATE TABLE Studies
@@ -149,6 +167,8 @@ CREATE TABLE Semester
     schedule   varchar(50) NOT NULL,
 
     PRIMARY KEY (id),
+
+    FOREIGN KEY (studies_id) REFERENCES Studies (id),
 )
 
 CREATE TABLE Subject
@@ -168,6 +188,8 @@ CREATE TABLE Internship
     date       date NOT NULL,
 
     PRIMARY KEY (id),
+
+    FOREIGN KEY (studies_id) REFERENCES Studies (id),
 )
 
 CREATE TABLE InternshipAttendence
@@ -177,6 +199,8 @@ CREATE TABLE InternshipAttendence
     attended_days int NOT NULL,
 
     PRIMARY KEY (student_id, internship_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id),
 )
 
 CREATE TABLE InternshipExam
@@ -186,21 +210,28 @@ CREATE TABLE InternshipExam
     result        int NOT NULL,
 
     PRIMARY KEY (student_id, internship_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id),
+    FOREIGN KEY (internship_id) REFERENCES Internship (id),
 )
 
 CREATE TABLE StudentMeeting
 (
     student_id   int NOT NULL,
     meeting_id   int NOT NULL,
-    payment_date date
-        PRIMARY KEY (student_id, meeting_id),
+    payment_date date,
+
+    PRIMARY KEY (student_id, meeting_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id),
+    FOREIGN KEY (meeting_id) REFERENCES Meeting (id),
 )
 
 CREATE TABLE Room
 (
-    id      int         NOT NULL,
-    number  varchar(10) NOT NULL,
-    bulding varchar(50) NOT NULL,
+    id       int         NOT NULL,
+    number   varchar(10) NOT NULL,
+    building varchar(50) NOT NULL,
 
     PRIMARY KEY (id),
 )
@@ -219,6 +250,11 @@ CREATE TABLE Meeting
     student_limit           int          NOT NULL,
 
     PRIMARY KEY (id),
+
+    FOREIGN KEY (module_id) REFERENCES Module (id),
+    FOREIGN KEY (subject_id) REFERENCES Subject (id),
+    FOREIGN KEY (translator_id) REFERENCES Translator (id),
+    FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id),
 )
 
 CREATE TABLE Basket
@@ -232,17 +268,25 @@ CREATE TABLE Basket
     payment_date date          NOT NULL,
 
     PRIMARY KEY (id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id),
 )
 
 CREATE TABLE BasketItem
 (
     basket_id  int NOT NULL,
-    course_id  int NOT NULL,
+    course_id  int,
     meeting_id int,
     studies_id int,
     webinar_id int,
 
-    PRIMARY KEY (basket_id, course_id),
+    PRIMARY KEY (basket_id, course_id, meeting_id, studies_id, webinar_id),
+
+    FOREIGN KEY (basket_id) REFERENCES Basket (id),
+    FOREIGN KEY (course_id) REFERENCES Course (id),
+    FOREIGN KEY (meeting_id) REFERENCES Meeting (id),
+    FOREIGN KEY (studies_id) REFERENCES Studies (id),
+    FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
 )
 
 CREATE TABLE Parameter
@@ -254,108 +298,3 @@ CREATE TABLE Parameter
 
     PRIMARY KEY (id),
 )
-
-ALTER TABLE StudentWebinar
-    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
-
-ALTER TABLE StudentWebinar
-    ADD FOREIGN KEY (webinar_id) REFERENCES Webinar (id)
-
-ALTER TABLE Webinar
-    ADD FOREIGN KEY (translator_id) REFERENCES Translator (id)
-
-ALTER TABLE Webinar
-    ADD FOREIGN KEY (teacher_id) REFERENCES Teacher (id)
-
-ALTER TABLE StudentCourse
-    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
-
-ALTER TABLE StudentCourse
-    ADD FOREIGN KEY (course_id) REFERENCES Course (id)
-
-ALTER TABLE Module
-    ADD FOREIGN KEY (course_id) REFERENCES Course (id)
-
-ALTER TABLE Module
-    ADD FOREIGN KEY (room_id) REFERENCES Room (id)
-
-ALTER TABLE Module
-    ADD FOREIGN KEY (teacher_id) REFERENCES Teacher (id)
-
-ALTER TABLE StudentMeetingAttendance
-    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
-
-ALTER TABLE StudentMeetingAttendance
-    ADD FOREIGN KEY (meeting_id) REFERENCES Meeting (id)
-
-ALTER TABLE StudentSemester
-    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
-
-ALTER TABLE StudentSemester
-    ADD FOREIGN KEY (semester_id) REFERENCES Semester (id)
-
-ALTER TABLE StudentStudies
-    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
-
-ALTER TABLE StudentStudies
-    ADD FOREIGN KEY (studies_id) REFERENCES Studies (id)
-
-ALTER TABLE Semester
-    ADD FOREIGN KEY (studies_id) REFERENCES Studies (id)
-
-ALTER TABLE Subject
-    ADD FOREIGN KEY (semester_id) REFERENCES Semester (id)
-
-ALTER TABLE Subject
-    ADD FOREIGN KEY (teacher_id) REFERENCES Teacher (id)
-
-ALTER TABLE Internship
-    ADD FOREIGN KEY (studies_id) REFERENCES Studies (id)
-
-ALTER TABLE InternshipAttendence
-    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
-
-ALTER TABLE InternshipAttendence
-    ADD FOREIGN KEY (internship_id) REFERENCES Internship (id)
-
-ALTER TABLE InternshipExam
-    ADD FOREIGN KEY (internship_id) REFERENCES Internship (id)
-
-ALTER TABLE InternshipExam
-    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
-
-ALTER TABLE StudentMeeting
-    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
-
-ALTER TABLE StudentMeeting
-    ADD FOREIGN KEY (meeting_id) REFERENCES Meeting (id)
-
-ALTER TABLE Meeting
-    ADD FOREIGN KEY (module_id) REFERENCES Module (id)
-
-ALTER TABLE Meeting
-    ADD FOREIGN KEY (subject_id) REFERENCES Subject (id)
-
-ALTER TABLE Meeting
-    ADD FOREIGN KEY (translator_id) REFERENCES Translator (id)
-
-ALTER TABLE Meeting
-    ADD FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id)
-
-ALTER TABLE Basket
-    ADD FOREIGN KEY (student_id) REFERENCES Student (id)
-
-ALTER TABLE BasketItem
-    ADD FOREIGN KEY (basket_id) REFERENCES Basket (id)
-
-ALTER TABLE BasketItem
-    ADD FOREIGN KEY (course_id) REFERENCES Course (id)
-
-ALTER TABLE BasketItem
-    ADD FOREIGN KEY (meeting_id) REFERENCES Meeting (id)
-
-ALTER TABLE BasketItem
-    ADD FOREIGN KEY (studies_id) REFERENCES Studies (id)
-
-ALTER TABLE BasketItem
-    ADD FOREIGN KEY (webinar_id) REFERENCES Webinar (id)
