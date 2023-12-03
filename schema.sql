@@ -122,7 +122,7 @@ CREATE TABLE Module
     FOREIGN KEY (room_id) REFERENCES Room (id),
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id),
 
-    CHECK (type IN ('online_sync', 'online_async', 'inperson', 'hybrid'))
+    CHECK (type IN ('online_sync', 'online_async', 'in_person', 'hybrid'))
 )
 
 CREATE TABLE StudentMeetingAttendance
@@ -203,7 +203,7 @@ CREATE TABLE Internship
     FOREIGN KEY (studies_id) REFERENCES Studies (id),
 )
 
-CREATE TABLE InternshipAttendence
+CREATE TABLE InternshipAttendance
 (
     student_id    int NOT NULL,
     internship_id int NOT NULL,
@@ -246,7 +246,7 @@ CREATE TABLE Meeting
     FOREIGN KEY (translator_id) REFERENCES Translator (id),
     FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id),
 
-    CHECK (type IN ('inperson', 'online', 'video'))
+    CHECK (type IN ('in_person', 'online', 'video'))
 )
 
 CREATE TABLE StudentMeeting
