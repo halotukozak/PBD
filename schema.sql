@@ -24,7 +24,7 @@ CREATE TABLE Student
     surname varchar(50)  NOT NULL,
     address varchar(200) NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE Teacher
@@ -33,7 +33,7 @@ CREATE TABLE Teacher
     name    varchar(50) NOT NULL,
     surname varchar(50) NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE StudentWebinar
@@ -43,6 +43,7 @@ CREATE TABLE StudentWebinar
     payment_date date NOT NULL,
 
     PRIMARY KEY (student_id, webinar_id)
+    PRIMARY KEY (student_id, webinar_id),
 )
 
 CREATE TABLE Translator
@@ -50,7 +51,7 @@ CREATE TABLE Translator
     id       int         NOT NULL,
     language varchar(50) NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE Webinar
@@ -63,7 +64,7 @@ CREATE TABLE Webinar
     translator_id int                          NOT NULL,
     teacher_id    int                          NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE StudentCourse
@@ -75,7 +76,7 @@ CREATE TABLE StudentCourse
     credit_date           date NOT NULL,
     certificate_post_date date NOT NULL,
 
-    PRIMARY KEY (student_id, course_id)
+    PRIMARY KEY (student_id, course_id),
 )
 
 CREATE TABLE Course
@@ -87,7 +88,7 @@ CREATE TABLE Course
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
     student_limit int                          NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE Module
@@ -98,7 +99,7 @@ CREATE TABLE Module
     room_id    int           NOT NULL,
     teacher_id int           NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE StudentMeetingAttendance
@@ -106,7 +107,7 @@ CREATE TABLE StudentMeetingAttendance
     student_id int NOT NULL,
     meeting_id int NOT NULL,
 
-    PRIMARY KEY (student_id, meeting_id)
+    PRIMARY KEY (student_id, meeting_id),
 )
 
 CREATE TABLE StudentSemester
@@ -115,7 +116,7 @@ CREATE TABLE StudentSemester
     semester_id  int  NOT NULL,
     payment_date date NOT NULL,
 
-    PRIMARY KEY (student_id, semester_id)
+    PRIMARY KEY (student_id, semester_id),
 )
 
 CREATE TABLE StudentStudies
@@ -125,7 +126,7 @@ CREATE TABLE StudentStudies
     registration_payment_date date NOT NULL,
     certificate_post_date     date NOT NULL,
 
-    PRIMARY KEY (student_id, studies_id)
+    PRIMARY KEY (student_id, studies_id),
 )
 
 CREATE TABLE Studies
@@ -137,7 +138,7 @@ CREATE TABLE Studies
     language      varchar(50)   NOT NULL,
     student_limit int           NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE Semester
@@ -147,7 +148,7 @@ CREATE TABLE Semester
     studies_id int         NOT NULL,
     schedule   varchar(50) NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE Subject
@@ -157,7 +158,7 @@ CREATE TABLE Subject
     semester_id int          NOT NULL,
     teacher_id  int          NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE Internship
@@ -166,7 +167,7 @@ CREATE TABLE Internship
     studies_id int  NOT NULL,
     date       date NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE InternshipAttendence
@@ -175,7 +176,7 @@ CREATE TABLE InternshipAttendence
     internship_id int NOT NULL,
     attended_days int NOT NULL,
 
-    PRIMARY KEY (student_id, internship_id)
+    PRIMARY KEY (student_id, internship_id),
 )
 
 CREATE TABLE InternshipExam
@@ -184,7 +185,7 @@ CREATE TABLE InternshipExam
     internship_id int NOT NULL,
     result        int NOT NULL,
 
-    PRIMARY KEY (student_id, internship_id)
+    PRIMARY KEY (student_id, internship_id),
 )
 
 CREATE TABLE StudentMeeting
@@ -192,7 +193,7 @@ CREATE TABLE StudentMeeting
     student_id   int NOT NULL,
     meeting_id   int NOT NULL,
     payment_date date
-        PRIMARY KEY (student_id, meeting_id)
+        PRIMARY KEY (student_id, meeting_id),
 )
 
 CREATE TABLE Room
@@ -201,7 +202,7 @@ CREATE TABLE Room
     number  varchar(10) NOT NULL,
     bulding varchar(50) NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE Meeting
@@ -217,7 +218,7 @@ CREATE TABLE Meeting
     substituting_teacher_id int          NOT NULL,
     student_limit           int          NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE Basket
@@ -230,7 +231,7 @@ CREATE TABLE Basket
     create_date  date          NOT NULL,
     payment_date date          NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 CREATE TABLE BasketItem
@@ -241,7 +242,7 @@ CREATE TABLE BasketItem
     studies_id int,
     webinar_id int,
 
-    PRIMARY KEY (basket_id, course_id)
+    PRIMARY KEY (basket_id, course_id),
 )
 
 CREATE TABLE Parameter
@@ -251,7 +252,7 @@ CREATE TABLE Parameter
     value varchar(50) NOT NULL,
     date  date        NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
 )
 
 ALTER TABLE StudentWebinar
