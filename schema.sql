@@ -19,27 +19,37 @@ EXEC sp_executesql @Sql;
 
 CREATE TABLE Student
 (
-    id      int          NOT NULL IDENTITY (1, 1),
-    name    varchar(50)  NOT NULL,
-    surname varchar(50)  NOT NULL,
-    address varchar(200) NOT NULL,
+    id           int          NOT NULL IDENTITY (1, 1),
+    name         varchar(50)  NOT NULL,
+    surname      varchar(50)  NOT NULL,
+    address      varchar(200) NOT NULL,
+    email        varchar(50)  NOT NULL,
+    phone_number varchar(20)  NOT NULL,
 
     PRIMARY KEY (id),
 )
 
 CREATE TABLE Teacher
 (
-    id      int         NOT NULL IDENTITY (1, 1),
-    name    varchar(50) NOT NULL,
-    surname varchar(50) NOT NULL,
+    id           int          NOT NULL IDENTITY (1, 1),
+    name         varchar(50)  NOT NULL,
+    surname      varchar(50)  NOT NULL,
+    address      varchar(200) NOT NULL,
+    email        varchar(50)  NOT NULL,
+    phone_number varchar(20)  NOT NULL,
 
     PRIMARY KEY (id),
 )
 
 CREATE TABLE Translator
 (
-    id       int         NOT NULL IDENTITY (1, 1),
-    language varchar(50) NOT NULL,
+    id           int          NOT NULL IDENTITY (1, 1),
+    language     varchar(50)  NOT NULL,
+    name         varchar(50)  NOT NULL,
+    surname      varchar(50)  NOT NULL,
+    address      varchar(200) NOT NULL,
+    email        varchar(50)  NOT NULL,
+    phone_number varchar(20)  NOT NULL,
 
     PRIMARY KEY (id),
 )
@@ -47,17 +57,19 @@ CREATE TABLE Translator
 CREATE TABLE Webinar
 (
     id            int                          NOT NULL IDENTITY (1, 1),
-    price         float                        NOT NULL,
+    price         float       DEFAULT 0        NOT NULL,
     date          date                         NOT NULL,
-    url           varchar(200)                  NOT NULL,
+    url           varchar(200)                 NOT NULL,
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
-    translator_id int                          NOT NULL,
+    translator_id int,
     teacher_id    int                          NOT NULL,
 
     PRIMARY KEY (id),
 
     FOREIGN KEY (translator_id) REFERENCES Translator (id),
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id),
+
+    CHECK (price >= 0),
 )
 
 CREATE TABLE StudentWebinar
@@ -70,6 +82,8 @@ CREATE TABLE StudentWebinar
 
     FOREIGN KEY (student_id) REFERENCES Student (id),
     FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
+
+    -- TODO("jakaś notka payment_date < webinar.date")
 )
 
 CREATE TABLE Course
@@ -82,6 +96,10 @@ CREATE TABLE Course
     student_limit int                          NOT NULL,
 
     PRIMARY KEY (id),
+
+    CHECK (price > 0),
+    CHECK (advance_price >= 0),
+    CHECK (student_limit > 0),
 )
 
 CREATE TABLE StudentCourse
@@ -89,14 +107,18 @@ CREATE TABLE StudentCourse
     student_id            int  NOT NULL,
     course_id             int  NOT NULL,
     advance_payment_date  date NOT NULL,
-    full_payment_date     date NOT NULL,
-    credit_date           date NOT NULL,
-    certificate_post_date date NOT NULL,
+    full_payment_date     date,
+    credit_date           date,
+    certificate_post_date date,
 
     PRIMARY KEY (student_id, course_id),
 
     FOREIGN KEY (student_id) REFERENCES Student (id),
     FOREIGN KEY (course_id) REFERENCES Course (id),
+
+    CHECK (advance_payment_date <= full_payment_date),
+    CHECK (full_payment_date <= credit_date),
+    CHECK (credit_date <= certificate_post_date),
 )
 
 CREATE TABLE Room
@@ -110,11 +132,11 @@ CREATE TABLE Room
 
 CREATE TABLE Module
 (
-    id         int           NOT NULL IDENTITY (1, 1),
-    course_id  int           NOT NULL,
+    id         int         NOT NULL IDENTITY (1, 1),
+    course_id  int         NOT NULL,
     type       varchar(15) NOT NULL,
-    room_id    int           NOT NULL,
-    teacher_id int           NOT NULL,
+    room_id    int,
+    teacher_id int         NOT NULL,
 
     PRIMARY KEY (id),
 
@@ -122,7 +144,11 @@ CREATE TABLE Module
     FOREIGN KEY (room_id) REFERENCES Room (id),
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id),
 
-    CHECK (type IN ('online_sync', 'online_async', 'in_person', 'hybrid'))
+    CHECK (
+        type = 'hybrid' OR
+        type = 'in_person' AND room_id IS NOT NULL OR
+        type IN ('online_sync', 'online_async') AND room_id IS NULL
+        ),
 )
 
 CREATE TABLE StudentMeetingAttendance
@@ -135,14 +161,20 @@ CREATE TABLE StudentMeetingAttendance
 
 CREATE TABLE Studies
 (
-    id            int           NOT NULL IDENTITY (1, 1),
-    syllabus      varchar(1000) NOT NULL,
-    price         float         NOT NULL,
-    advance_price float         NOT NULL,
-    language      varchar(50)   NOT NULL,
-    student_limit int           NOT NULL,
+    id            int                          NOT NULL IDENTITY (1, 1),
+    syllabus      varchar(1000),
+    price         float                        NOT NULL,
+    advance_price float                        NOT NULL,
+    language      varchar(50) DEFAULT 'Polish' NOT NULL,
+    student_limit int                          NOT NULL,
 
     PRIMARY KEY (id),
+
+    CHECK (price > 0),
+    CHECK (advance_price >= 0),
+    CHECK (student_limit > 0),
+
+    --TODO("jakaś notka, że po rozpoczęciu studiów nie może syllabus być null")
 )
 
 CREATE TABLE Semester
@@ -151,10 +183,14 @@ CREATE TABLE Semester
     number     int         NOT NULL,
     studies_id int         NOT NULL,
     schedule   varchar(50) NOT NULL,
+    start_date date        NOT NULL,
+    end_date   date        NOT NULL,
 
     PRIMARY KEY (id),
 
     FOREIGN KEY (studies_id) REFERENCES Studies (id),
+    CHECK (number > 0 AND number <= 12),
+    CHECK (start_date < end_date),
 )
 
 CREATE TABLE StudentSemester
@@ -173,13 +209,15 @@ CREATE TABLE StudentStudies
 (
     student_id                int  NOT NULL,
     studies_id                int  NOT NULL,
-    registration_payment_date date NOT NULL,
-    certificate_post_date     date NOT NULL,
+    registration_payment_date date NOT NULL, -- wpisowe
+    certificate_post_date     date,
 
     PRIMARY KEY (student_id, studies_id),
 
     FOREIGN KEY (student_id) REFERENCES Student (id),
     FOREIGN KEY (studies_id) REFERENCES Studies (id),
+
+    CHECK (registration_payment_date < certificate_post_date),
 )
 
 CREATE TABLE Subject
@@ -205,13 +243,15 @@ CREATE TABLE Internship
 
 CREATE TABLE InternshipAttendance
 (
-    student_id    int NOT NULL,
-    internship_id int NOT NULL,
-    attended_days int NOT NULL,
+    student_id    int           NOT NULL,
+    internship_id int           NOT NULL,
+    attended_days int DEFAULT 0 NOT NULL,
 
     PRIMARY KEY (student_id, internship_id),
 
     FOREIGN KEY (student_id) REFERENCES Student (id),
+
+    CHECK (attended_days >= 0),
 )
 
 CREATE TABLE InternshipExam
@@ -224,20 +264,22 @@ CREATE TABLE InternshipExam
 
     FOREIGN KEY (student_id) REFERENCES Student (id),
     FOREIGN KEY (internship_id) REFERENCES Internship (id),
+
+    CHECK (result >= 0 AND result <= 100),
 )
 
 CREATE TABLE Meeting
 (
-    id                      int          NOT NULL IDENTITY (1, 1),
-    module_id               int          NOT NULL,
-    subject_id              int          NOT NULL,
-    url                     varchar(200) NOT NULL,
-    date                    date         NOT NULL,
+    id                      int         NOT NULL IDENTITY (1, 1),
+    module_id               int,
+    subject_id              int,
+    url                     varchar(200),
+    date                    date        NOT NULL,
     type                    varchar(10) NOT NULL,
-    standalone_price        float        NOT NULL,
-    translator_id           int          NOT NULL,
-    substituting_teacher_id int          NOT NULL,
-    student_limit           int          NOT NULL,
+    standalone_price        float,
+    translator_id           int,
+    substituting_teacher_id int,
+    student_limit           int         NOT NULL,
 
     PRIMARY KEY (id),
 
@@ -246,7 +288,15 @@ CREATE TABLE Meeting
     FOREIGN KEY (translator_id) REFERENCES Translator (id),
     FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id),
 
-    CHECK (type IN ('in_person', 'online', 'video'))
+    CHECK (
+        module_id IS NOT NULL AND subject_id IS NULL OR
+        module_id IS NULL AND subject_id IS NOT NULL
+        ),
+    CHECK (type = 'in_person' OR type IN ('online', 'video') AND url IS NOT NULL),
+
+    CHECK (student_limit > 0),
+    CHECK (standalone_price is NULL OR standalone_price > 0),
+    --TODO(student_limt - zapisni na kurs >= 0)
 )
 
 CREATE TABLE StudentMeeting
@@ -263,19 +313,22 @@ CREATE TABLE StudentMeeting
 
 CREATE TABLE Basket
 (
-    id           int           NOT NULL IDENTITY (1, 1),
-    student_id   int           NOT NULL,
-    payment_url  varchar(200)   NOT NULL,
+    id           int         NOT NULL IDENTITY (1, 1),
+    student_id   int         NOT NULL,
+    payment_url  varchar(200),
     state        varchar(15) NOT NULL,
-    create_date  date          NOT NULL,
-    payment_date date          NOT NULL,
+    create_date  date        NOT NULL,
+    payment_date date        NOT NULL,
 
     PRIMARY KEY (id),
 
     FOREIGN KEY (student_id) REFERENCES Student (id),
 
-    CHECK (state IN ('open', 'pending_payment', 'success_payment', 'failed_payment'))
+    CHECK (state IN ('open', 'pending_payment', 'success_payment', 'failed_payment')),
+    CHECK (state = 'open' OR payment_url IS NOT NULL ),
 )
+
+--TU skończyliśmy
 
 CREATE TABLE BasketItem
 (
@@ -295,10 +348,10 @@ CREATE TABLE BasketItem
     FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
 
     CHECK (
-            (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NOT NULL) OR
-            (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NOT NULL AND webinar_id IS NULL) OR
-            (course_id IS NULL AND meeting_id IS NOT NULL AND studies_id IS NULL AND webinar_id IS NULL) OR
-            (course_id IS NOT NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NULL)
+        (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NOT NULL) OR
+        (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NOT NULL AND webinar_id IS NULL) OR
+        (course_id IS NULL AND meeting_id IS NOT NULL AND studies_id IS NULL AND webinar_id IS NULL) OR
+        (course_id IS NOT NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NULL)
         )
 )
 
