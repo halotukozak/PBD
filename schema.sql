@@ -23,8 +23,8 @@ CREATE TABLE Student
     name         varchar(50)  NOT NULL,
     surname      varchar(50)  NOT NULL,
     address      varchar(200) NOT NULL,
-    email        varchar(50)  NOT NULL,
-    phone_number varchar(20)  NOT NULL,
+    email        varchar(50)  NOT NULL UNIQUE,
+    phone_number varchar(20)  NOT NULL UNIQUE,
 
     PRIMARY KEY (id),
 )
@@ -35,8 +35,8 @@ CREATE TABLE Teacher
     name         varchar(50)  NOT NULL,
     surname      varchar(50)  NOT NULL,
     address      varchar(200) NOT NULL,
-    email        varchar(50)  NOT NULL,
-    phone_number varchar(20)  NOT NULL,
+    email        varchar(50)  NOT NULL UNIQUE,
+    phone_number varchar(20)  NOT NULL UNIQUE,
 
     PRIMARY KEY (id),
 )
@@ -48,8 +48,8 @@ CREATE TABLE Translator
     name         varchar(50)  NOT NULL,
     surname      varchar(50)  NOT NULL,
     address      varchar(200) NOT NULL,
-    email        varchar(50)  NOT NULL,
-    phone_number varchar(20)  NOT NULL,
+    email        varchar(50)  NOT NULL UNIQUE,
+    phone_number varchar(20)  NOT NULL UNIQUE,
 
     PRIMARY KEY (id),
 )
@@ -59,7 +59,7 @@ CREATE TABLE Webinar
     id            int                          NOT NULL IDENTITY (1, 1),
     price         float       DEFAULT 0        NOT NULL,
     date          date                         NOT NULL,
-    url           varchar(200)                 NOT NULL,
+    url           varchar(200)                 NOT NULL UNIQUE,
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
     translator_id int,
     teacher_id    int                          NOT NULL,
@@ -82,8 +82,6 @@ CREATE TABLE StudentWebinar
 
     FOREIGN KEY (student_id) REFERENCES Student (id),
     FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
-
-    -- TODO("jakaś notka payment_date < webinar.date")
 )
 
 CREATE TABLE Course
@@ -173,8 +171,6 @@ CREATE TABLE Studies
     CHECK (price > 0),
     CHECK (advance_price >= 0),
     CHECK (student_limit > 0),
-
-    --TODO("jakaś notka, że po rozpoczęciu studiów nie może syllabus być null")
 )
 
 CREATE TABLE Semester
@@ -191,6 +187,7 @@ CREATE TABLE Semester
     FOREIGN KEY (studies_id) REFERENCES Studies (id),
     CHECK (number > 0 AND number <= 12),
     CHECK (start_date < end_date),
+    UNIQUE (studies_id, number),
 )
 
 CREATE TABLE StudentSemester
@@ -296,7 +293,6 @@ CREATE TABLE Meeting
 
     CHECK (student_limit > 0),
     CHECK (standalone_price is NULL OR standalone_price > 0),
-    --TODO(student_limt - zapisni na kurs >= 0)
 )
 
 CREATE TABLE StudentMeeting
@@ -326,9 +322,8 @@ CREATE TABLE Basket
 
     CHECK (state IN ('open', 'pending_payment', 'success_payment', 'failed_payment')),
     CHECK (state = 'open' OR payment_url IS NOT NULL ),
+    CHECK (payment_date >= create_date),
 )
-
---TU skończyliśmy
 
 CREATE TABLE BasketItem
 (
@@ -338,7 +333,6 @@ CREATE TABLE BasketItem
     studies_id int,
     webinar_id int,
 
---     nwm wsm jak to z nullami wygląda, pasowałoby na prodzie sprawdzić
     PRIMARY KEY (basket_id, course_id, meeting_id, studies_id, webinar_id),
 
     FOREIGN KEY (basket_id) REFERENCES Basket (id),
@@ -354,13 +348,71 @@ CREATE TABLE BasketItem
         (course_id IS NOT NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NULL)
         )
 )
-
 CREATE TABLE Parameter
 (
-    id    int         NOT NULL IDENTITY (1, 1),
-    type  varchar(50) NOT NULL,
+    name  varchar(50) NOT NULL,
     value varchar(50) NOT NULL,
     date  date        NOT NULL,
 
-    PRIMARY KEY (id),
+    PRIMARY KEY (name, date),
 )
+
+CREATE TRIGGER StudentWebinarPaymentDate
+    ON StudentWebinar
+    AFTER INSERT, UPDATE
+    AS
+BEGIN
+    IF EXISTS (SELECT 1
+               FROM inserted
+                        INNER JOIN Webinar w ON webinar_id = w.id
+               WHERE payment_date >= w.date)
+        BEGIN
+            RAISERROR ('Payment date cannot be later than webinar date', 16, 1);
+        END
+END;
+
+CREATE TRIGGER MeetingStudentLimit
+    ON Meeting
+    AFTER INSERT, UPDATE
+    AS
+BEGIN
+    DECLARE @course_students INT, @semester_students INT, @meeting_students INT;
+
+    SELECT @course_students = (SELECT DISTINCT COUNT(*)
+                               FROM inserted
+                                        INNER JOIN Meeting ON Meeting.id = inserted.id
+                                        INNER JOIN Module M on M.id = Meeting.module_id
+                                        INNER JOIN Course C on C.id = M.course_id
+                                        INNER JOIN StudentCourse SC on C.id = SC.course_id)
+    SELECT @semester_students = (SELECT DISTINCT COUNT(*)
+                                 FROM inserted
+                                          INNER JOIN Subject on Subject.id = inserted.subject_id
+                                          INNER JOIN dbo.StudentSemester
+                                                     on Subject.semester_id = StudentSemester.semester_id)
+    SELECT @meeting_students = (SELECT DISTINCT COUNT(*)
+                                FROM inserted
+                                         INNER JOIN StudentMeeting on inserted.id = StudentMeeting.meeting_id);
+
+
+    IF @course_students + @semester_students + @meeting_students > student_limit
+        BEGIN
+            RAISERROR ('Student limit cannot be lower than number of students', 16, 1);
+        END
+END;
+
+CREATE TRIGGER StudiesSyllabus
+    ON Studies
+    AFTER INSERT, UPDATE
+    AS
+BEGIN
+    DECLARE @studies_start_date DATE;
+    SELECT @studies_start_date = (SELECT S.start_date
+                                  FROM inserted
+                                           INNER JOIN Semester S on inserted.id = S.studies_id
+                                  WHERE number = 1)
+
+    IF syllabus IS NULL AND @studies_start_date < GETDATE()
+        BEGIN
+            RAISERROR ('Syllabus cannot be empty after the first semester started.', 16, 1);
+        END
+END;
