@@ -1,5 +1,5 @@
 -- Drop all foreign keys
-DECLARE @Sql VARCHAR(MAX) = '';
+DECLARE @Sql NVARCHAR(MAX) = '';
 SELECT @Sql += 'ALTER TABLE ' + table_name + ' DROP CONSTRAINT ' + constraint_name + ';'
 FROM information_schema.table_constraints
 WHERE constraint_type = 'FOREIGN KEY';
@@ -357,7 +357,9 @@ CREATE TABLE Parameter
     PRIMARY KEY (name, date),
 )
 
-CREATE TRIGGER StudentWebinarPaymentDate
+GO
+
+CREATE TRIGGER student_webinar_payment_date
     ON StudentWebinar
     AFTER INSERT, UPDATE
     AS
@@ -369,9 +371,11 @@ BEGIN
         BEGIN
             RAISERROR ('Payment date cannot be later than webinar date', 16, 1);
         END
-END;
+END
 
-CREATE TRIGGER MeetingStudentLimit
+GO
+
+CREATE TRIGGER meeting_student_limit
     ON Meeting
     AFTER INSERT, UPDATE
     AS
@@ -387,20 +391,23 @@ BEGIN
     SELECT @semester_students = (SELECT DISTINCT COUNT(*)
                                  FROM inserted
                                           INNER JOIN Subject on Subject.id = inserted.subject_id
-                                          INNER JOIN dbo.StudentSemester
+                                          INNER JOIN StudentSemester
                                                      on Subject.semester_id = StudentSemester.semester_id)
     SELECT @meeting_students = (SELECT DISTINCT COUNT(*)
                                 FROM inserted
                                          INNER JOIN StudentMeeting on inserted.id = StudentMeeting.meeting_id);
 
 
-    IF @course_students + @semester_students + @meeting_students > student_limit
+    IF @course_students + @semester_students + @meeting_students > (SELECT student_limit
+                                                                    FROM inserted)
         BEGIN
             RAISERROR ('Student limit cannot be lower than number of students', 16, 1);
         END
 END;
 
-CREATE TRIGGER StudiesSyllabus
+GO
+
+CREATE TRIGGER studies_syllabus
     ON Studies
     AFTER INSERT, UPDATE
     AS
@@ -411,8 +418,11 @@ BEGIN
                                            INNER JOIN Semester S on inserted.id = S.studies_id
                                   WHERE number = 1)
 
-    IF syllabus IS NULL AND @studies_start_date < GETDATE()
+    IF (SELECT syllabus FROM inserted) IS NULL AND @studies_start_date < GETDATE()
         BEGIN
             RAISERROR ('Syllabus cannot be empty after the first semester started.', 16, 1);
         END
-END;
+END
+
+GO
+
