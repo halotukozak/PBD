@@ -387,7 +387,7 @@ BEGIN
     SELECT @semester_students = (SELECT DISTINCT COUNT(*)
                                  FROM inserted
                                           INNER JOIN Subject on Subject.id = inserted.subject_id
-                                          INNER JOIN dbo.StudentSemester
+                                          INNER JOIN StudentSemester
                                                      on Subject.semester_id = StudentSemester.semester_id)
     SELECT @meeting_students = (SELECT DISTINCT COUNT(*)
                                 FROM inserted
