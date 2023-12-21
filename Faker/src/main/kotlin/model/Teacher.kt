@@ -24,17 +24,3 @@ class Teacher(id: EntityID<Int>) : IntEntity(id) {
   var email by Teachers.email
   var phoneNumber by Teachers.phoneNumber
 }
-
-fun Faker.insertTeachers(n: Int) {
-  val faker = this
-  generateSequence {
-    val (name, surname) = faker.name.let { it.name() to it.lastName() }
-    Teacher.new {
-      this.name = name
-      this.surname = surname
-      this.address = faker.address.fullAddress()
-      this.email = faker.internet.email(name)
-      this.phoneNumber = faker.phoneNumber.phoneNumber()
-    }
-  }.take(n)
-}

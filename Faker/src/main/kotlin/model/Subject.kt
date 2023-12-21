@@ -21,11 +21,3 @@ class Subject(id: EntityID<Int>) : IntEntity(id) {
   var semester by Semester referencedOn Subjects.semesterId
   var teacher by Teacher referencedOn Subjects.teacherId
 }
-
-fun Faker.insertSubjects(n: Int) = generateSequence {
-  Subject.new {
-    name = science.branch.formalBasic()
-    semester = Semester.all().toList().random()
-    teacher = Teacher.all().toList().random()
-  }
-}.take(n)

@@ -19,10 +19,3 @@ class Room(id: EntityID<Int>) : IntEntity(id) {
   var number by Rooms.number
   var building by Rooms.building
 }
-
-fun Faker.insertRooms(n: Int) = generateSequence {
-  Room.new {
-    number = string.numerify("##.##")
-    building = address.buildingNumber()
-  }
-}

@@ -33,17 +33,6 @@ class Webinar(id: EntityID<Int>) : IntEntity(id) {
   var teacher by Teacher referencedOn Webinars.teacherId
 }
 
-fun Faker.insertWebinars(n: Int) = generateSequence {
-  Webinar.new {
-    price = random.nextFloat()
-    date = date()
-    url = internet.domain()
-    language = nation.language()
-    translator = Translator.all().toList().random()
-    teacher = Teacher.all().toList().random()
-  }
-}.take(n)
-
 object StudentWebinars : Table() {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val webinarId = integer("webinar_id").references(Webinars.id, onDelete = ReferenceOption.CASCADE)

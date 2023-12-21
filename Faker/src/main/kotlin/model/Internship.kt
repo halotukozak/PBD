@@ -9,24 +9,16 @@ import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.javatime.date
 
 object Internships : IntIdTable() {
-  val studiesId = integer("studies_id").references(Studies.id, onDelete = ReferenceOption.CASCADE)
+  val studiesId = integer("studies_id").references(StudiesTable.id, onDelete = ReferenceOption.CASCADE)
   val date = date("date")
 }
 
 class Internship(id: EntityID<Int>) : IntEntity(id) {
   companion object : IntEntityClass<Internship>(Internships)
 
-  var studies by Study referencedOn Internships.studiesId
+  var studies by Studies referencedOn Internships.studiesId
   var date by Internships.date
 }
-
-fun Faker.insertInternships(n: Int) = generateSequence {
-  Internship.new {
-    studies = Study.all().toList().random()
-    date = date()
-  }
-}.take(n)
-
 
 object InternshipAttendances : IntIdTable() {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)

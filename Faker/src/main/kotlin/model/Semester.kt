@@ -1,19 +1,15 @@
 package model
 
-import io.github.serpro69.kfaker.Faker
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.date
-import java.time.LocalDate
-import kotlin.random.Random.Default.nextInt
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 object Semesters : IntIdTable() {
   val number = integer("number")
-  val studiesId = integer("studies_id").references(Studies.id, onDelete = ReferenceOption.CASCADE)
+  val studiesId = integer("studies_id").references(StudiesTable.id, onDelete = ReferenceOption.CASCADE)
   val schedule = varchar("schedule", 50)
   val startDate = date("start_date")
   val endDate = date("end_date")
@@ -27,18 +23,8 @@ class Semester(id: EntityID<Int>) : IntEntity(id) {
   companion object : IntEntityClass<Semester>(Semesters)
 
   var number by Semesters.number
-  var studiesId by Studies referencedOn Semesters.studiesId
+  var studies by Studies referencedOn Semesters.studiesId
   var schedule by Semesters.schedule
   var startDate by Semesters.startDate
   var endDate by Semesters.endDate
 }
-
-fun Faker.insertSemesters(n: Int) = generateSequence {
-  Semester.new {
-    number = random.nextInt(1, 12)
-    studiesId = Study.all().toList().random()
-    schedule = lorem.words()
-    startDate = date()
-    endDate = date()
-  }
-}.take(n)

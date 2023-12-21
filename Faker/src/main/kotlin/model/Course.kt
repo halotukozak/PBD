@@ -32,16 +32,6 @@ class Course(id: EntityID<Int>) : IntEntity(id) {
   var studentLimit by Courses.studentLimit
 }
 
-fun Faker.insertCourses(n: Int) = generateSequence {
-  Course.new {
-    price = random.nextFloat()
-    advancePrice = random.nextFloat()
-    subject = commerce.productName()
-    language = nation.language()
-    studentLimit = random.nextInt(1, 100)
-  }
-}.take(n)
-
 object StudentCourses : Table() {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val courseId = integer("course_id").references(Courses.id, onDelete = ReferenceOption.CASCADE)

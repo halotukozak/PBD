@@ -1,5 +1,6 @@
 plugins {
   kotlin("jvm") version "1.9.21"
+  kotlin("plugin.serialization") version "1.9.21"
 }
 
 group = "org.oolab"
@@ -18,6 +19,8 @@ dependencies {
   implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
   implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
   implementation("io.github.serpro69:kotlin-faker:$fakerVersion")
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
 
   testImplementation("org.jetbrains.kotlin:kotlin-test")
 

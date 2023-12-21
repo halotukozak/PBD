@@ -1,6 +1,7 @@
 package model
 
 import io.github.serpro69.kfaker.Faker
+import model.ModuleType.*
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -12,13 +13,14 @@ import org.jetbrains.exposed.sql.or
 
 object Modules : IntIdTable() {
   val courseId = integer("course_id").references(Courses.id, onDelete = ReferenceOption.CASCADE)
-  val type = varchar("type", 15)
+  val type = enumerationByName<ModuleType>("type", 10)
   val roomId = integer("room_id").references(Rooms.id, onDelete = ReferenceOption.CASCADE).nullable()
   val teacherId = integer("teacher_id").references(Teachers.id, onDelete = ReferenceOption.CASCADE)
 
   val typeCheck = check {
-    (type eq "hybrid") or ((type eq "in_person") and (roomId neq null)) or ((type inList listOf(
-      "online_sync", "online_async"
+    (type eq hybrid) or ((type eq in_person) and (roomId neq null)) or ((type inList listOf(
+      online_sync,
+      online_async
     )) and (roomId eq null))
   }
 }
@@ -32,14 +34,7 @@ class Module(id: EntityID<Int>) : IntEntity(id) {
   var teacher by Teacher referencedOn Modules.teacherId
 }
 
-fun Faker.insertModules(n: Int) = generateSequence {
-  Module.new {
-    course = Course.all().toList().random()
-    type = listOf("hybrid", "in_person", "online_sync", "online_async").random()
-    room = Room.all().toList().random()
-    teacher = Teacher.all().toList().random()
-  }
-}.take(n)
+
 
 object StudentMeetingAttendances : Table() {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
@@ -49,4 +44,8 @@ object StudentMeetingAttendances : Table() {
     index(true, studentId, meetingId)
   }
 
+}
+
+enum class ModuleType {
+  hybrid, in_person, online_sync, online_async
 }
