@@ -11,11 +11,11 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.or
 
-object Modules : IntIdTable() {
-  val courseId = integer("course_id").references(Courses.id, onDelete = ReferenceOption.CASCADE)
+object Modules : IntIdTable("Module") {
+  val courseId = integer("course_id").references(Courses.id, onDelete = ReferenceOption.NO_ACTION)
   val type = enumerationByName<ModuleType>("type", 10)
-  val roomId = integer("room_id").references(Rooms.id, onDelete = ReferenceOption.CASCADE).nullable()
-  val teacherId = integer("teacher_id").references(Teachers.id, onDelete = ReferenceOption.CASCADE)
+  val roomId = integer("room_id").references(Rooms.id, onDelete = ReferenceOption.NO_ACTION).nullable()
+  val teacherId = integer("teacher_id").references(Teachers.id, onDelete = ReferenceOption.NO_ACTION)
 
   val typeCheck = check {
     (type eq hybrid) or ((type eq in_person) and (roomId neq null)) or ((type inList listOf(
@@ -35,8 +35,7 @@ class Module(id: EntityID<Int>) : IntEntity(id) {
 }
 
 
-
-object StudentMeetingAttendances : Table() {
+object StudentMeetingAttendances : Table("StudentMeetingAttendance") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val meetingId = integer("meeting_id").references(Meetings.id, onDelete = ReferenceOption.CASCADE)
 

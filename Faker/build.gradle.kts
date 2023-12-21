@@ -20,7 +20,8 @@ dependencies {
   implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
   implementation("io.github.serpro69:kotlin-faker:$fakerVersion")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
-
+  implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.1.jre8")
+  implementation("org.slf4j:slf4j-nop:1.7.36")
 
   testImplementation("org.jetbrains.kotlin:kotlin-test")
 

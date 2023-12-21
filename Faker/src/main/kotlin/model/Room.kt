@@ -8,7 +8,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.batchInsert
 import kotlin.random.Random
 
-object Rooms : IntIdTable() {
+object Rooms : IntIdTable("Room") {
   val number = varchar("number", 10)
   val building = varchar("building", 50)
 }

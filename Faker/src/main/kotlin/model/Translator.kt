@@ -6,7 +6,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 
-object Translators : IntIdTable() {
+object Translators : IntIdTable("Translator") {
   val language = varchar("language", 50)
   val name = varchar("name", 50)
   val surname = varchar("surname", 50)

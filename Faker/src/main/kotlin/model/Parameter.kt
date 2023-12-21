@@ -6,7 +6,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.javatime.date
 
-object Parameters : IntIdTable() {
+object Parameters : IntIdTable("Parameter") {
   val name = varchar("name", 50)
   val value = varchar("value", 50)
   val date = date("date")

@@ -1,14 +1,14 @@
 package model
 
-import io.github.serpro69.kfaker.Faker
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
 
-object Students : IntIdTable() {
+object Students : IntIdTable("Student") {
   val name = varchar("name", 50)
   val surname = varchar("surname", 50)
   val address = varchar("address", 200)
@@ -24,17 +24,21 @@ class Student(id: EntityID<Int>) : IntEntity(id) {
   var address by Students.address
   var email by Students.email
   var phoneNumber by Students.phoneNumber
+
+//  var courses by Course via StudentCourses
+//  var internships by Internship via InternshipAttendances
+//  var studies by Studies via StudentStudies
+//  var webinars by Webinar via StudentWebinars
+//  var baskets by Basket via BasketItems
 }
 
-object StudentStudies : IntIdTable() {
+object StudentStudies : Table("StudentStudies") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val studiesId = integer("studies_id").references(StudiesTable.id, onDelete = ReferenceOption.CASCADE)
   val registrationPaymentDate = date("registration_payment_date")
   val certificatePostDate = date("certificate_post_date").nullable()
 
-  init {
-    index(true, studentId, studiesId)
-  }
+  override val primaryKey: PrimaryKey = PrimaryKey(studentId, studiesId)
 
   val dateCheck = check { registrationPaymentDate less certificatePostDate }
 }

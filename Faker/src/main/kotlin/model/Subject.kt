@@ -8,10 +8,10 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.batchInsert
 
-object Subjects : IntIdTable() {
+object Subjects : IntIdTable("Subject") {
   val name = varchar("name", 200)
-  val semesterId = integer("semester_id").references(Semesters.id, onDelete = ReferenceOption.CASCADE)
-  val teacherId = integer("teacher_id").references(Teachers.id, onDelete = ReferenceOption.CASCADE)
+  val semesterId = integer("semester_id").references(Semesters.id, onDelete = ReferenceOption.NO_ACTION)
+  val teacherId = integer("teacher_id").references(Teachers.id, onDelete = ReferenceOption.NO_ACTION)
 }
 
 class Subject(id: EntityID<Int>) : IntEntity(id) {

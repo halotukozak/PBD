@@ -10,7 +10,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.javatime.date
 
-object Courses : IntIdTable() {
+object Courses : IntIdTable("Course") {
   val price = float("price")
   val advancePrice = float("advance_price")
   val subject = varchar("subject", 100)
@@ -30,9 +30,11 @@ class Course(id: EntityID<Int>) : IntEntity(id) {
   var subject by Courses.subject
   var language by Courses.language
   var studentLimit by Courses.studentLimit
+
+  var students by Student via StudentCourses
 }
 
-object StudentCourses : Table() {
+object StudentCourses : Table("StudentCourse") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val courseId = integer("course_id").references(Courses.id, onDelete = ReferenceOption.CASCADE)
   val advancePaymentDate = date("advance_payment_date")

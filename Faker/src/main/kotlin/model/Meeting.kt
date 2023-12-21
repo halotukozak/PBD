@@ -10,16 +10,17 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.date
 import java.util.*
 
-object Meetings : IntIdTable() {
-  val moduleId = integer("module_id").references(Modules.id, onDelete = ReferenceOption.CASCADE).nullable()
-  val subjectId = integer("subject_id").references(Subjects.id, onDelete = ReferenceOption.CASCADE).nullable()
+object Meetings : IntIdTable("Meeting") {
+  val moduleId = integer("module_id").references(Modules.id, onDelete = ReferenceOption.NO_ACTION).nullable()
+  val subjectId = integer("subject_id").references(Subjects.id, onDelete = ReferenceOption.NO_ACTION).nullable()
   val url = varchar("url", 200).nullable()
   val date = date("date")
   val type = enumerationByName<MeetingType>("type", 10)
   val standalonePrice = float("standalone_price").nullable()
-  val translatorId = integer("translator_id").references(Translators.id, onDelete = ReferenceOption.CASCADE).nullable()
+  val translatorId =
+    integer("translator_id").references(Translators.id, onDelete = ReferenceOption.SET_NULL).nullable()
   val substitutingTeacherId =
-    integer("substituting_teacher_id").references(Teachers.id, onDelete = ReferenceOption.CASCADE).nullable()
+    integer("substituting_teacher_id").references(Teachers.id, onDelete = ReferenceOption.SET_NULL).nullable()
   val studentLimit = integer("student_limit")
 
   val typeCheck = check { (moduleId neq null and (subjectId eq null)) or (moduleId eq null and (subjectId neq null)) }
@@ -40,9 +41,10 @@ class Meeting(id: EntityID<Int>) : IntEntity(id) {
   var translator by Translator optionalReferencedOn Meetings.translatorId
   var substitutingTeacher by Teacher optionalReferencedOn Meetings.substitutingTeacherId
   var studentLimit by Meetings.studentLimit
+  var students by Student via StudentMeetings
 }
 
-object StudentMeetings : IntIdTable() {
+object StudentMeetings : IntIdTable("StudentMeeting") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val meetingId = integer("meeting_id").references(Meetings.id, onDelete = ReferenceOption.CASCADE)
   val paymentDate = date("payment_date").nullable()

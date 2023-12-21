@@ -1,3 +1,5 @@
+USE u_bkozak
+
 -- Drop all foreign keys
 DECLARE @Sql NVARCHAR(MAX) = '';
 SELECT @Sql += 'ALTER TABLE ' + table_name + ' DROP CONSTRAINT ' + constraint_name + ';'
@@ -57,7 +59,7 @@ CREATE TABLE Translator
 CREATE TABLE Webinar
 (
     id            int                          NOT NULL IDENTITY (1, 1),
-    price         float       DEFAULT 0        NOT NULL,
+    price         float       DEFAULT 0.0      NOT NULL,
     date          date                         NOT NULL,
     url           varchar(200)                 NOT NULL UNIQUE,
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
@@ -66,8 +68,8 @@ CREATE TABLE Webinar
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (translator_id) REFERENCES Translator (id),
-    FOREIGN KEY (teacher_id) REFERENCES Teacher (id),
+    FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
+    FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
     CHECK (price >= 0),
 )
@@ -80,8 +82,8 @@ CREATE TABLE StudentWebinar
 
     PRIMARY KEY (student_id, webinar_id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id),
-    FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
+    FOREIGN KEY (webinar_id) REFERENCES Webinar (id) ON DELETE CASCADE,
 )
 
 CREATE TABLE Course
@@ -111,8 +113,8 @@ CREATE TABLE StudentCourse
 
     PRIMARY KEY (student_id, course_id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id),
-    FOREIGN KEY (course_id) REFERENCES Course (id),
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE NO ACTION,
+    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE NO ACTION,
 
     CHECK (advance_payment_date <= full_payment_date),
     CHECK (full_payment_date <= credit_date),
@@ -138,9 +140,9 @@ CREATE TABLE Module
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (course_id) REFERENCES Course (id),
-    FOREIGN KEY (room_id) REFERENCES Room (id),
-    FOREIGN KEY (teacher_id) REFERENCES Teacher (id),
+    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE NO ACTION,
+    FOREIGN KEY (room_id) REFERENCES Room (id) ON DELETE NO ACTION,
+    FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
     CHECK (
         type = 'hybrid' OR
@@ -184,7 +186,7 @@ CREATE TABLE Semester
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (studies_id) REFERENCES Studies (id),
+    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE NO ACTION,
     CHECK (number > 0 AND number <= 12),
     CHECK (start_date < end_date),
     UNIQUE (studies_id, number),
@@ -198,8 +200,8 @@ CREATE TABLE StudentSemester
 
     PRIMARY KEY (student_id, semester_id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id),
-    FOREIGN KEY (semester_id) REFERENCES Semester (id),
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
+    FOREIGN KEY (semester_id) REFERENCES Semester (id) ON DELETE CASCADE,
 )
 
 CREATE TABLE StudentStudies
@@ -211,8 +213,8 @@ CREATE TABLE StudentStudies
 
     PRIMARY KEY (student_id, studies_id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id),
-    FOREIGN KEY (studies_id) REFERENCES Studies (id),
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
+    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE CASCADE,
 
     CHECK (registration_payment_date < certificate_post_date),
 )
@@ -225,6 +227,9 @@ CREATE TABLE Subject
     teacher_id  int          NOT NULL,
 
     PRIMARY KEY (id),
+
+    FOREIGN KEY (semester_id) REFERENCES Semester (id) ON DELETE NO ACTION,
+    FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 )
 
 CREATE TABLE Internship
@@ -235,7 +240,7 @@ CREATE TABLE Internship
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (studies_id) REFERENCES Studies (id),
+    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE NO ACTION,
 )
 
 CREATE TABLE InternshipAttendance
@@ -246,7 +251,7 @@ CREATE TABLE InternshipAttendance
 
     PRIMARY KEY (student_id, internship_id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id),
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE NO ACTION,
 
     CHECK (attended_days >= 0),
 )
@@ -259,8 +264,8 @@ CREATE TABLE InternshipExam
 
     PRIMARY KEY (student_id, internship_id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id),
-    FOREIGN KEY (internship_id) REFERENCES Internship (id),
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE NO ACTION,
+    FOREIGN KEY (internship_id) REFERENCES Internship (id) ON DELETE NO ACTION,
 
     CHECK (result >= 0 AND result <= 100),
 )
@@ -280,10 +285,10 @@ CREATE TABLE Meeting
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (module_id) REFERENCES Module (id),
-    FOREIGN KEY (subject_id) REFERENCES Subject (id),
-    FOREIGN KEY (translator_id) REFERENCES Translator (id),
-    FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id),
+    FOREIGN KEY (module_id) REFERENCES Module (id) ON DELETE NO ACTION,
+    FOREIGN KEY (subject_id) REFERENCES Subject (id) ON DELETE NO ACTION,
+    FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
+    FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id) ON DELETE SET NULL,
 
     CHECK (
         module_id IS NOT NULL AND subject_id IS NULL OR
@@ -303,8 +308,8 @@ CREATE TABLE StudentMeeting
 
     PRIMARY KEY (student_id, meeting_id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id),
-    FOREIGN KEY (meeting_id) REFERENCES Meeting (id),
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
+    FOREIGN KEY (meeting_id) REFERENCES Meeting (id) ON DELETE CASCADE,
 )
 
 CREATE TABLE Basket
@@ -314,32 +319,32 @@ CREATE TABLE Basket
     payment_url  varchar(200),
     state        varchar(15) NOT NULL,
     create_date  date        NOT NULL,
-    payment_date date        NOT NULL,
+    payment_date date,
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id),
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
 
     CHECK (state IN ('open', 'pending_payment', 'success_payment', 'failed_payment')),
     CHECK (state = 'open' OR payment_url IS NOT NULL ),
-    CHECK (payment_date >= create_date),
+    CHECK (payment_date IS NULL OR payment_date >= create_date),
 )
 
 CREATE TABLE BasketItem
 (
     basket_id  int NOT NULL,
-    course_id  int,
-    meeting_id int,
-    studies_id int,
-    webinar_id int,
+    course_id  int NULL,
+    meeting_id int NULL,
+    studies_id int NULL,
+    webinar_id int NULL,
 
-    PRIMARY KEY (basket_id, course_id, meeting_id, studies_id, webinar_id),
+    UNIQUE (basket_id, course_id, meeting_id, studies_id, webinar_id),
 
-    FOREIGN KEY (basket_id) REFERENCES Basket (id),
-    FOREIGN KEY (course_id) REFERENCES Course (id),
-    FOREIGN KEY (meeting_id) REFERENCES Meeting (id),
-    FOREIGN KEY (studies_id) REFERENCES Studies (id),
-    FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
+    FOREIGN KEY (basket_id) REFERENCES Basket (id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE CASCADE,
+    FOREIGN KEY (meeting_id) REFERENCES Meeting (id) ON DELETE CASCADE,
+    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE CASCADE,
+    FOREIGN KEY (webinar_id) REFERENCES Webinar (id) ON DELETE CASCADE,
 
     CHECK (
         (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NOT NULL) OR
@@ -348,6 +353,7 @@ CREATE TABLE BasketItem
         (course_id IS NOT NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NULL)
         )
 )
+
 CREATE TABLE Parameter
 (
     name  varchar(50) NOT NULL,
@@ -359,70 +365,70 @@ CREATE TABLE Parameter
 
 GO
 
-CREATE TRIGGER student_webinar_payment_date
-    ON StudentWebinar
-    AFTER INSERT, UPDATE
-    AS
-BEGIN
-    IF EXISTS (SELECT 1
-               FROM inserted
-                        INNER JOIN Webinar w ON webinar_id = w.id
-               WHERE payment_date >= w.date)
-        BEGIN
-            RAISERROR ('Payment date cannot be later than webinar date', 16, 1);
-        END
-END
-
-GO
-
-CREATE TRIGGER meeting_student_limit
-    ON Meeting
-    AFTER INSERT, UPDATE
-    AS
-BEGIN
-    DECLARE @course_students INT, @semester_students INT, @meeting_students INT;
-
-    SELECT @course_students = (SELECT DISTINCT COUNT(*)
-                               FROM inserted
-                                        INNER JOIN Meeting ON Meeting.id = inserted.id
-                                        INNER JOIN Module M on M.id = Meeting.module_id
-                                        INNER JOIN Course C on C.id = M.course_id
-                                        INNER JOIN StudentCourse SC on C.id = SC.course_id)
-    SELECT @semester_students = (SELECT DISTINCT COUNT(*)
-                                 FROM inserted
-                                          INNER JOIN Subject on Subject.id = inserted.subject_id
-                                          INNER JOIN StudentSemester
-                                                     on Subject.semester_id = StudentSemester.semester_id)
-    SELECT @meeting_students = (SELECT DISTINCT COUNT(*)
-                                FROM inserted
-                                         INNER JOIN StudentMeeting on inserted.id = StudentMeeting.meeting_id);
-
-
-    IF @course_students + @semester_students + @meeting_students > (SELECT student_limit
-                                                                    FROM inserted)
-        BEGIN
-            RAISERROR ('Student limit cannot be lower than number of students', 16, 1);
-        END
-END;
-
-GO
-
-CREATE TRIGGER studies_syllabus
-    ON Studies
-    AFTER INSERT, UPDATE
-    AS
-BEGIN
-    DECLARE @studies_start_date DATE;
-    SELECT @studies_start_date = (SELECT S.start_date
-                                  FROM inserted
-                                           INNER JOIN Semester S on inserted.id = S.studies_id
-                                  WHERE number = 1)
-
-    IF (SELECT syllabus FROM inserted) IS NULL AND @studies_start_date < GETDATE()
-        BEGIN
-            RAISERROR ('Syllabus cannot be empty after the first semester started.', 16, 1);
-        END
-END
-
-GO
-
+-- CREATE TRIGGER student_webinar_payment_date
+--     ON StudentWebinar
+--     AFTER INSERT, UPDATE
+--     AS
+-- BEGIN
+--     IF EXISTS (SELECT 1
+--                FROM inserted
+--                         INNER JOIN Webinar w ON webinar_id = w.id
+--                WHERE payment_date >= w.date)
+--         BEGIN
+--             RAISERROR ('Payment date cannot be later than webinar date', 16, 1);
+--         END
+-- END
+--
+-- GO
+--
+-- CREATE TRIGGER meeting_student_limit
+--     ON Meeting
+--     AFTER INSERT, UPDATE
+--     AS
+-- BEGIN
+--     DECLARE @course_students INT, @semester_students INT, @meeting_students INT;
+--
+--     SELECT @course_students = (SELECT DISTINCT COUNT(*)
+--                                FROM inserted
+--                                         INNER JOIN Meeting ON Meeting.id = inserted.id
+--                                         INNER JOIN Module M on M.id = Meeting.module_id
+--                                         INNER JOIN Course C on C.id = M.course_id
+--                                         INNER JOIN StudentCourse SC on C.id = SC.course_id)
+--     SELECT @semester_students = (SELECT DISTINCT COUNT(*)
+--                                  FROM inserted
+--                                           INNER JOIN Subject on Subject.id = inserted.subject_id
+--                                           INNER JOIN StudentSemester
+--                                                      on Subject.semester_id = StudentSemester.semester_id)
+--     SELECT @meeting_students = (SELECT DISTINCT COUNT(*)
+--                                 FROM inserted
+--                                          INNER JOIN StudentMeeting on inserted.id = StudentMeeting.meeting_id);
+--
+--
+--     IF @course_students + @semester_students + @meeting_students > (SELECT student_limit
+--                                                                     FROM inserted)
+--         BEGIN
+--             RAISERROR ('Student limit cannot be lower than number of students', 16, 1);
+--         END
+-- END;
+--
+-- GO
+--
+-- CREATE TRIGGER studies_syllabus
+--     ON Studies
+--     AFTER INSERT, UPDATE
+--     AS
+-- BEGIN
+--     DECLARE @studies_start_date DATE;
+--     SELECT @studies_start_date = (SELECT S.start_date
+--                                   FROM inserted
+--                                            INNER JOIN Semester S on inserted.id = S.studies_id
+--                                   WHERE number = 1)
+--
+--     IF (SELECT syllabus FROM inserted) IS NULL AND @studies_start_date < GETDATE()
+--         BEGIN
+--             RAISERROR ('Syllabus cannot be empty after the first semester started.', 16, 1);
+--         END
+-- END
+--
+-- GO
+--

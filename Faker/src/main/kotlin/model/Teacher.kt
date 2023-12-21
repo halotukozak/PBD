@@ -7,7 +7,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.batchInsert
 
-object Teachers : IntIdTable() {
+object Teachers : IntIdTable("Teacher") {
   val name = varchar("name", 50)
   val surname = varchar("surname", 50)
   val address = varchar("address", 200)

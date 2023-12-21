@@ -9,7 +9,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.date
 
-object Baskets : IntIdTable() {
+object Baskets : IntIdTable("Basket") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val paymentUrl = varchar("payment_url", 200).nullable()
   val state = enumerationByName<BasketState>("state", 15)
@@ -28,18 +28,25 @@ class Basket(id: EntityID<Int>) : IntEntity(id) {
   var state by Baskets.state
   var createDate by Baskets.createDate
   var paymentDate by Baskets.paymentDate
+
+  var courses by Course via BasketItems
+  var meetings by Meeting via BasketItems
+  var studies by Studies via BasketItems
+  var webinars by Webinar via BasketItems
 }
 
-object BasketItems : Table() {
+object BasketItems : Table("BasketItem") {
   val basketId = integer("basket_id").references(Baskets.id, onDelete = ReferenceOption.CASCADE)
   val courseId = integer("course_id").references(Courses.id, onDelete = ReferenceOption.CASCADE).nullable()
   val meetingId = integer("meeting_id").references(Meetings.id, onDelete = ReferenceOption.CASCADE).nullable()
   val studiesId = integer("studies_id").references(StudiesTable.id, onDelete = ReferenceOption.CASCADE).nullable()
   val webinarId = integer("webinar_id").references(Webinars.id, onDelete = ReferenceOption.CASCADE).nullable()
 
-  override val primaryKey = PrimaryKey(basketId, courseId, meetingId, studiesId, webinarId)
+  init {
+    uniqueIndex(basketId, courseId, meetingId, studiesId, webinarId)
+  }
 
-  val check = check {
+  val xor = check {
     ((courseId eq null) and (meetingId eq null) and (studiesId eq null) and (webinarId neq null)) or ((courseId eq null) and (meetingId eq null) and (studiesId neq null) and (webinarId eq null)) or ((courseId eq null) and (meetingId neq null) and (studiesId eq null) and (webinarId eq null)) or ((courseId neq null) and (meetingId eq null) and (studiesId eq null) and (webinarId eq null))
   }
 }

@@ -7,9 +7,9 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.date
 
-object Semesters : IntIdTable() {
+object Semesters : IntIdTable("Semester") {
   val number = integer("number")
-  val studiesId = integer("studies_id").references(StudiesTable.id, onDelete = ReferenceOption.CASCADE)
+  val studiesId = integer("studies_id").references(StudiesTable.id, onDelete = ReferenceOption.NO_ACTION)
   val schedule = varchar("schedule", 50)
   val startDate = date("start_date")
   val endDate = date("end_date")

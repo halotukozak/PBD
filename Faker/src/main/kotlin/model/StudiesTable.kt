@@ -1,14 +1,14 @@
 package model
 
-import io.github.serpro69.kfaker.Faker
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
 
-object StudiesTable : IntIdTable() {
+object StudiesTable : IntIdTable("Studies") {
   val syllabus = varchar("syllabus", 1000).nullable()
   val price = float("price")
   val advancePrice = float("advance_price")
@@ -28,14 +28,16 @@ class Studies(id: EntityID<Int>) : IntEntity(id) {
   var advancePrice by StudiesTable.advancePrice
   var language by StudiesTable.language
   var studentLimit by StudiesTable.studentLimit
+//
+//  var students by Student via StudentStudies
+//  var internships by Internship via Internships
+//  var semesters by Semester via StudentSemesters
 }
 
-object StudentSemesters : IntIdTable() {
+object StudentSemesters : Table("StudentSemester") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val semesterId = integer("semester_id").references(Semesters.id, onDelete = ReferenceOption.CASCADE)
   val paymentDate = date("payment_date")
 
-  init {
-    index(true, studentId, semesterId)
-  }
+  override val primaryKey: PrimaryKey = PrimaryKey(StudentSemesters.studentId, StudentSemesters.semesterId)
 }

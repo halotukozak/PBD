@@ -8,8 +8,8 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.javatime.date
 
-object Internships : IntIdTable() {
-  val studiesId = integer("studies_id").references(StudiesTable.id, onDelete = ReferenceOption.CASCADE)
+object Internships : IntIdTable("Internship") {
+  val studiesId = integer("studies_id").references(StudiesTable.id)
   val date = date("date")
 }
 
@@ -18,9 +18,12 @@ class Internship(id: EntityID<Int>) : IntEntity(id) {
 
   var studies by Studies referencedOn Internships.studiesId
   var date by Internships.date
+
+  var students by Student via InternshipAttendances
+  var exams by Student via InternshipExams
 }
 
-object InternshipAttendances : IntIdTable() {
+object InternshipAttendances : IntIdTable("InternshipAttendance") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val internshipId = integer("internship_id").references(Internships.id, onDelete = ReferenceOption.CASCADE)
   val attendedDays = integer("attended_days").default(0)
@@ -32,7 +35,7 @@ object InternshipAttendances : IntIdTable() {
   val attendedDaysCheck = check { attendedDays greaterEq 0 }
 }
 
-object InternshipExams : IntIdTable() {
+object InternshipExams : IntIdTable("InternshipExam") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val internshipId = integer("internship_id").references(Internships.id, onDelete = ReferenceOption.CASCADE)
   val result = integer("result")

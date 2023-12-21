@@ -11,15 +11,15 @@ import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.javatime.date
 import java.time.LocalDate
 
-object Webinars : IntIdTable() {
+object Webinars : IntIdTable("Webinar") {
   val price = float("price").default(0f)
   val date = date("date")
   val url = varchar("url", 200).uniqueIndex()
   val language = varchar("language", 50).default("Polish")
-  val translatorId = integer("translator_id").references(Translators.id, onDelete = ReferenceOption.CASCADE)
-  val teacherId = integer("teacher_id").references(Teachers.id, onDelete = ReferenceOption.CASCADE)
+  val translatorId = integer("translator_id").references(Translators.id, onDelete = ReferenceOption.SET_NULL).nullable()
+  val teacherId = integer("teacher_id").references(Teachers.id)
 
-  val priceCheck = check { price greaterEq 0 }
+  val priceCheck = check { price greaterEq 0f }
 }
 
 class Webinar(id: EntityID<Int>) : IntEntity(id) {
@@ -29,11 +29,13 @@ class Webinar(id: EntityID<Int>) : IntEntity(id) {
   var date by Webinars.date
   var url by Webinars.url
   var language by Webinars.language
-  var translator by Translator referencedOn Webinars.translatorId
+  var translator by Translator optionalReferencedOn Webinars.translatorId
   var teacher by Teacher referencedOn Webinars.teacherId
+
+//  var students by Student via StudentWebinars
 }
 
-object StudentWebinars : Table() {
+object StudentWebinars : Table("StudentWebinar") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val webinarId = integer("webinar_id").references(Webinars.id, onDelete = ReferenceOption.CASCADE)
   val paymentDate = date("payment_date")
