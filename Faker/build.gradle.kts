@@ -22,9 +22,6 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
   implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.1.jre8")
   implementation("org.slf4j:slf4j-nop:1.7.36")
-
-  testImplementation("org.jetbrains.kotlin:kotlin-test")
-
 }
 
 tasks.test {
