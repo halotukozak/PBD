@@ -69,7 +69,7 @@ CREATE TABLE Webinar
     PRIMARY KEY (id),
 
     FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
-    FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE SET NULL,
+    FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
     CHECK (price >= 0),
 )
@@ -114,7 +114,7 @@ CREATE TABLE StudentCourse
     PRIMARY KEY (student_id, course_id),
 
     FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE SET NULL,
+    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE CASCADE,
 
     CHECK (advance_payment_date <= full_payment_date),
     CHECK (full_payment_date <= credit_date),
@@ -224,7 +224,7 @@ CREATE TABLE Subject
     id          int          NOT NULL IDENTITY (1, 1),
     name        varchar(200) NOT NULL,
     semester_id int          NOT NULL,
-    teacher_id  int          NOT NULL,
+    teacher_id  int,
 
     PRIMARY KEY (id),
 
@@ -269,22 +269,21 @@ CREATE TABLE Meeting
     type                    varchar(10) NOT NULL,
     standalone_price        float,
     translator_id           int,
-    substituting_teacher_id int,
+    substituting_teacher_id int DEFAULT NULL,
     student_limit           int         NOT NULL,
 
     PRIMARY KEY (id),
 
     FOREIGN KEY (module_id) REFERENCES Module (id) ON DELETE CASCADE,
-    FOREIGN KEY (subject_id) REFERENCES Subject (id) ON DELETE CASCADE,
+    FOREIGN KEY (subject_id) REFERENCES Subject (id) ON DELETE NO ACTION,
     FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
-    FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id) ON DELETE SET NULL,
+    FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
     CHECK (
         module_id IS NOT NULL AND subject_id IS NULL OR
         module_id IS NULL AND subject_id IS NOT NULL
         ),
     CHECK (type = 'in_person' OR type IN ('online', 'video') AND url IS NOT NULL),
-
     CHECK (student_limit > 0),
     CHECK (standalone_price is NULL OR standalone_price > 0),
 )
@@ -329,11 +328,11 @@ CREATE TABLE BasketItem
 
     UNIQUE (basket_id, course_id, meeting_id, studies_id, webinar_id),
 
-    FOREIGN KEY (basket_id) REFERENCES Basket (id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE CASCADE,
-    FOREIGN KEY (meeting_id) REFERENCES Meeting (id) ON DELETE CASCADE,
-    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE CASCADE,
-    FOREIGN KEY (webinar_id) REFERENCES Webinar (id) ON DELETE CASCADE,
+    FOREIGN KEY (basket_id) REFERENCES Basket (id),
+    FOREIGN KEY (course_id) REFERENCES Course (id),
+    FOREIGN KEY (meeting_id) REFERENCES Meeting (id),
+    FOREIGN KEY (studies_id) REFERENCES Studies (id),
+    FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
 
     CHECK (
         (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NOT NULL) OR
