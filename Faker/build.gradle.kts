@@ -3,7 +3,7 @@ plugins {
   kotlin("plugin.serialization") version "1.9.21"
 }
 
-group = "org.oolab"
+group = "org.faker"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -22,6 +22,7 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
   implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.1.jre8")
   implementation("org.slf4j:slf4j-nop:1.7.36")
+  implementation("com.typesafe:config:1.4.1")
 }
 
 tasks.test {

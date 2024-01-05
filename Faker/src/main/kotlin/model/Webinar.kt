@@ -1,15 +1,12 @@
 package model
 
-import io.github.serpro69.kfaker.Faker
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.javatime.date
-import java.time.LocalDate
 
 object Webinars : IntIdTable("Webinar") {
   val price = float("price").default(0f)
@@ -40,7 +37,6 @@ object StudentWebinars : Table("StudentWebinar") {
   val webinarId = integer("webinar_id").references(Webinars.id, onDelete = ReferenceOption.CASCADE)
   val paymentDate = date("payment_date")
 
-  init {
-    index(true, studentId, webinarId)
-  }
+  override val primaryKey: PrimaryKey = PrimaryKey(studentId, webinarId)
+
 }

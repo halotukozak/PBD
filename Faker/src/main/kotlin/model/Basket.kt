@@ -1,13 +1,15 @@
 package model
 
-import io.github.serpro69.kfaker.Faker
-import model.BasketState.*
+import model.BasketState.open
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.javatime.date
+import org.jetbrains.exposed.sql.or
 
 object Baskets : IntIdTable("Basket") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
@@ -37,10 +39,10 @@ class Basket(id: EntityID<Int>) : IntEntity(id) {
 
 object BasketItems : Table("BasketItem") {
   val basketId = integer("basket_id").references(Baskets.id, onDelete = ReferenceOption.CASCADE)
-  val courseId = integer("course_id").references(Courses.id, onDelete = ReferenceOption.CASCADE).nullable()
-  val meetingId = integer("meeting_id").references(Meetings.id, onDelete = ReferenceOption.CASCADE).nullable()
-  val studiesId = integer("studies_id").references(StudiesTable.id, onDelete = ReferenceOption.CASCADE).nullable()
-  val webinarId = integer("webinar_id").references(Webinars.id, onDelete = ReferenceOption.CASCADE).nullable()
+  val courseId = integer("course_id").references(Courses.id, onDelete = ReferenceOption.NO_ACTION).nullable()
+  val meetingId = integer("meeting_id").references(Meetings.id, onDelete = ReferenceOption.NO_ACTION).nullable()
+  val studiesId = integer("studies_id").references(StudiesTable.id, onDelete = ReferenceOption.NO_ACTION).nullable()
+  val webinarId = integer("webinar_id").references(Webinars.id, onDelete = ReferenceOption.NO_ACTION).nullable()
 
   init {
     uniqueIndex(basketId, courseId, meetingId, studiesId, webinarId)

@@ -141,22 +141,14 @@ CREATE TABLE Module
     PRIMARY KEY (id),
 
     FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE CASCADE,
-    FOREIGN KEY (room_id) REFERENCES Room (id) ON DELETE CASCADE,
-    FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE CASCADE,
+    FOREIGN KEY (room_id) REFERENCES Room (id) ON DELETE NO ACTION,
+    FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
     CHECK (
         type = 'hybrid' OR
         type = 'in_person' AND room_id IS NOT NULL OR
         type IN ('online_sync', 'online_async') AND room_id IS NULL
         ),
-)
-
-CREATE TABLE StudentMeetingAttendance
-(
-    student_id int NOT NULL,
-    meeting_id int NOT NULL,
-
-    PRIMARY KEY (student_id, meeting_id),
 )
 
 CREATE TABLE Studies
@@ -186,7 +178,7 @@ CREATE TABLE Semester
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE CASCADE,
+    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE NO ACTION,
     CHECK (number > 0 AND number <= 12),
     CHECK (start_date < end_date),
     UNIQUE (studies_id, number),
@@ -274,7 +266,7 @@ CREATE TABLE Meeting
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (module_id) REFERENCES Module (id) ON DELETE CASCADE,
+    FOREIGN KEY (module_id) REFERENCES Module (id) ON DELETE NO ACTION,
     FOREIGN KEY (subject_id) REFERENCES Subject (id) ON DELETE NO ACTION,
     FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
     FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
@@ -293,6 +285,17 @@ CREATE TABLE StudentMeeting
     student_id   int NOT NULL,
     meeting_id   int NOT NULL,
     payment_date date,
+
+    PRIMARY KEY (student_id, meeting_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
+    FOREIGN KEY (meeting_id) REFERENCES Meeting (id) ON DELETE CASCADE,
+)
+
+CREATE TABLE StudentMeetingAttendance
+(
+    student_id int NOT NULL,
+    meeting_id int NOT NULL,
 
     PRIMARY KEY (student_id, meeting_id),
 
@@ -328,7 +331,7 @@ CREATE TABLE BasketItem
 
     UNIQUE (basket_id, course_id, meeting_id, studies_id, webinar_id),
 
-    FOREIGN KEY (basket_id) REFERENCES Basket (id),
+    FOREIGN KEY (basket_id) REFERENCES Basket (id) ON DELETE CASCADE,
     FOREIGN KEY (course_id) REFERENCES Course (id),
     FOREIGN KEY (meeting_id) REFERENCES Meeting (id),
     FOREIGN KEY (studies_id) REFERENCES Studies (id),

@@ -39,5 +39,5 @@ object StudentSemesters : Table("StudentSemester") {
   val semesterId = integer("semester_id").references(Semesters.id, onDelete = ReferenceOption.CASCADE)
   val paymentDate = date("payment_date")
 
-  override val primaryKey: PrimaryKey = PrimaryKey(StudentSemesters.studentId, StudentSemesters.semesterId)
+  override val primaryKey: PrimaryKey = PrimaryKey(studentId, semesterId)
 }
