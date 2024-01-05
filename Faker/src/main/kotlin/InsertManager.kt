@@ -15,7 +15,7 @@ class InsertManager(val faker: Faker) {
     subjects: List<Subject>,
     translators: List<Translator>,
     teachers: List<Teacher>,
-    n: Int = 100,
+    n: Int = 10,
   ) = safeRepeat(n) {
     val withModule = faker.random.nextBoolean()
     Meeting.new {
@@ -35,7 +35,7 @@ class InsertManager(val faker: Faker) {
     courses: List<Course>,
     rooms: List<Room>,
     teachers: List<Teacher>,
-    n: Int = 100,
+    n: Int = 10,
   ) = safeRepeat(n) {
     Module.new {
       course = courses.random()
@@ -46,7 +46,7 @@ class InsertManager(val faker: Faker) {
   }
 
   fun insertCourses(
-    n: Int = 100,
+    n: Int = 10,
   ) = safeRepeat(n) {
     Course.new {
       price = faker.random.nextFloat()
@@ -58,7 +58,7 @@ class InsertManager(val faker: Faker) {
   }
 
   fun insertRooms(
-    n: Int = 100,
+    n: Int = 10,
   ) = safeRepeat(n) {
     Room.new {
       number = faker.string.numerify("##.##")
@@ -67,7 +67,8 @@ class InsertManager(val faker: Faker) {
   }
 
   fun insertBaskets(
-    students: List<Student>, n: Int = 100,
+    students: List<Student>,
+    n: Int = 10,
   ) = safeRepeat(n) {
     val isOpen = faker.random.nextBoolean()
     Basket.new {
@@ -80,7 +81,7 @@ class InsertManager(val faker: Faker) {
   }
 
   fun insertInternships(
-    studies: List<Studies>, n: Int = 100,
+    studies: List<Studies>, n: Int = 10,
   ) = safeRepeat(n) {
     Internship.new {
       this.studies = studies.random()
@@ -89,7 +90,7 @@ class InsertManager(val faker: Faker) {
   }
 
   fun insertSubjects(
-    semesters: List<Semester>, teachers: List<Teacher>, n: Int = 100,
+    semesters: List<Semester>, teachers: List<Teacher>, n: Int = 10,
   ) = safeRepeat(n) {
     Subject.new {
       name = faker.science.branch.formalBasic()
@@ -99,7 +100,7 @@ class InsertManager(val faker: Faker) {
   }
 
   fun insertSemesters(
-    studies: List<Studies>, n: Int = 100,
+    studies: List<Studies>, n: Int = 10,
   ) = studies.flatMap {
     val numberOfSemesters = faker.random.nextInt(1, 12)
     generateSequence(faker.date().let { it to faker.date(it) }) { (_, endDate) ->
@@ -118,7 +119,7 @@ class InsertManager(val faker: Faker) {
   }
 
   fun insertStudies(
-    n: Int = 100,
+    n: Int = 10,
   ) = safeRepeat(n) {
     Studies.new {
       syllabus = faker.lorem.supplemental()
@@ -132,7 +133,7 @@ class InsertManager(val faker: Faker) {
   fun insertWebinars(
     translators: List<Translator>,
     teachers: List<Teacher>,
-    n: Int = 100,
+    n: Int = 10,
   ) = safeRepeat(n) {
     Webinar.new {
       price = faker.random.nextFloat()
@@ -145,7 +146,7 @@ class InsertManager(val faker: Faker) {
   }
 
   fun insertTranslators(
-    n: Int = 100,
+    n: Int = 10,
   ) = safeRepeat(n) {
     val (name, surname) = faker.name.let { it.name() to it.lastName() }
     Translator.new {
@@ -159,7 +160,7 @@ class InsertManager(val faker: Faker) {
   }
 
   fun insertTeachers(
-    n: Int = 100,
+    n: Int = 10,
   ) = safeRepeat(n) {
     val (name, surname) = faker.name.let { it.name() to it.lastName() }
     Teacher.new {
@@ -172,7 +173,7 @@ class InsertManager(val faker: Faker) {
   }
 
   fun insertStudents(
-    n: Int = 100,
+    n: Int = 10,
   ) = safeRepeat(n) {
     val (name, surname) = faker.name.let { it.firstName() to it.lastName() }
     Student.new {
@@ -184,7 +185,7 @@ class InsertManager(val faker: Faker) {
     }
   }
 
-  fun <T> safeRepeat(n: Int, f: () -> T): List<T> =
+  private fun <T> safeRepeat(n: Int, f: () -> T): List<T> =
     List(n) {
       try {
         transaction {
