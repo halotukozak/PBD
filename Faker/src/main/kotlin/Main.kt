@@ -11,17 +11,11 @@ import org.slf4j.LoggerFactory
 fun main() {
   val config = ConfigFactory.load("application.conf")
 
-  val dbConfig = config.getConfig("database")
-  val url = dbConfig.getString("url")
-  val driver = dbConfig.getString("driver")
-  val user = dbConfig.getString("user")
-  val password = dbConfig.getString("password")
-
   Database.connect(
-    url = url,
-    driver = driver,
-    user = user,
-    password = password
+    url = config.getConfig("database").getString("url"),
+    driver = config.getConfig("database").getString("driver"),
+    user = config.getConfig("database").getString("user"),
+    password = config.getConfig("database").getString("password")
   )
 
   val logger = LoggerFactory.getLogger("Main")
