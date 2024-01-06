@@ -3,15 +3,23 @@ package org.oolab.model
 import com.typesafe.config.ConfigFactory
 import io.github.serpro69.kfaker.faker
 import model.*
+import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 
 fun main() {
+  val logger = KotlinLogging.logger("Main")
+  require(logger.isWarnEnabled && logger.isInfoEnabled && logger.isDebugEnabled) {
+    "Logger not configured properly"
+  }
+
   val config = ConfigFactory.load("application.conf")
+
+  logger.info { "Config loaded" }
 
   Database.connect(
     url = config.getConfig("database").getString("url"),
@@ -20,13 +28,15 @@ fun main() {
     password = config.getConfig("database").getString("password")
   )
 
-  val logger = LoggerFactory.getLogger("Main")
+  logger.info { "Database connected" }
 
   val faker = faker {
     fakerConfig {
       locale = "pl"
     }
   }
+
+  logger.info { "Faker initialized" }
 
   val tables = listOf(
     Baskets,
@@ -52,9 +62,11 @@ fun main() {
     StudentMeetings,
     StudentMeetingAttendance,
     StudentWebinars,
-  ).also {
+  ).let {
     SchemaUtils.sortTablesByReferences(it)
   }
+
+  logger.info { "Tables initialized" }
 
   transaction {
     val names = tables.map { it.tableName }.toSet()
@@ -66,17 +78,31 @@ fun main() {
     require(!SchemaUtils.checkCycle(*tables.toTypedArray()))
   }
 
+  logger.info { "Tables checked" }
+
   transaction {
-    while (tables.any { it.selectAll().count() > 0 }) { //to avoid constraint violations, the order should be changed
-      tables.forEach {
+    retry(3, logger) {
+      require(tables.fold(true) { success, it ->
         try {
           it.deleteAll()
+          success
         } catch (e: Exception) {
           logger.warn(e.message)
+          false
         }
+      })
+    }
+  }
+
+  transaction {
+    tables.forEach {
+      require(it.selectAll().empty()) {
+        "Table ${it.tableName} is not empty"
       }
     }
   }
+
+  logger.info { "Tables cleared" }
 
   transaction {
     SchemaUtils.statementsRequiredToActualizeScheme(*tables.toTypedArray())
@@ -86,19 +112,50 @@ fun main() {
     }
   }
 
+  logger.info { "Schemas checked" }
+
   val insertManager = InsertManager(faker)
 
-  val students = insertManager.insertStudents()
-  val teachers = insertManager.insertTeachers()
-  val translators = insertManager.insertTranslators()
-  val webinars = insertManager.insertWebinars(translators, teachers)
-  val studies = insertManager.insertStudies()
-  val semesters = insertManager.insertSemesters(studies)
-  val subjects = insertManager.insertSubjects(semesters, teachers)
-  val internships = insertManager.insertInternships(studies)
-  val baskets = insertManager.insertBaskets(students)
-  val rooms = insertManager.insertRooms()
-  val courses = insertManager.insertCourses()
-  val modules = insertManager.insertModules(courses, rooms, teachers)
-  val meetings = insertManager.insertMeetings(modules, subjects, translators, teachers)
+  logger.info { "InsertManager initialized" }
+
+  val studentIds = insertManager.insertStudents()
+  logger.info { "${studentIds.count()} Students inserted" }
+  val teacherIds = insertManager.insertTeachers()
+  logger.info { "${teacherIds.count()} Teachers inserted" }
+  val translatorIds = insertManager.insertTranslators()
+  logger.info { "${translatorIds.count()} Translators inserted" }
+  val webinarIds = insertManager.insertWebinars(translatorIds, teacherIds)
+  logger.info { "${webinarIds.count()} Webinars inserted" }
+  val studiesIds = insertManager.insertStudies()
+  logger.info { "${studiesIds.count()} Studies inserted" }
+  val semesterIds = insertManager.insertSemesters(studiesIds)
+  logger.info { "${semesterIds.count()} Semesters inserted" }
+  val subjectIds = insertManager.insertSubjects(semesterIds, teacherIds)
+  logger.info { "${subjectIds.count()} Subjects inserted" }
+  val internshipIds = insertManager.insertInternships(studiesIds)
+  logger.info { "${internshipIds.count()} Internships inserted" }
+  val basketIds = insertManager.insertBaskets(studentIds)
+  logger.info { "${basketIds.count()} Baskets inserted" }
+  val roomIds = insertManager.insertRooms()
+  logger.info { "${roomIds.count()} Rooms inserted" }
+  val courseIds = insertManager.insertCourses()
+  logger.info { "${courseIds.count()} Courses inserted" }
+  val moduleIds = insertManager.insertModules(courseIds, roomIds, teacherIds)
+  logger.info { "${moduleIds.count()} Modules inserted" }
+  val meetingIds = insertManager.insertMeetings(moduleIds, subjectIds, translatorIds, teacherIds)
+  logger.info { "${meetingIds.count()} Meetings inserted" }
+  
+}
+
+fun <T> retry(
+  times: Int = 3, logger: Logger, block: () -> T
+): T? {
+  repeat(times - 1) {
+    try {
+      return block()
+    } catch (e: Exception) {
+      logger.error(e.message)
+    }
+  }
+  return block()
 }

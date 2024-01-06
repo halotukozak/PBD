@@ -1,11 +1,14 @@
 package model
 
+import model.ModuleType.*
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.or
 
 object Modules : IntIdTable("Module") {
   val courseId = integer("course_id").references(Courses.id, onDelete = ReferenceOption.CASCADE)
@@ -13,12 +16,11 @@ object Modules : IntIdTable("Module") {
   val roomId = integer("room_id").references(Rooms.id, onDelete = ReferenceOption.NO_ACTION).nullable()
   val teacherId = integer("teacher_id").references(Teachers.id, onDelete = ReferenceOption.NO_ACTION)
 
-//  val typeCheck = check {
-//    (type eq hybrid) or ((type eq in_person) and (roomId neq null)) or ((type inList listOf(
-//      online_sync,
-//      online_async
-//    )) and (roomId eq null))
-//  }
+  val typeCheck = check {
+    (type eq hybrid) or ((type eq in_person) and (roomId neq null)) or ((type inList listOf(
+      online_sync, online_async
+    )) and (roomId eq null))
+  }
 }
 
 class Module(id: EntityID<Int>) : IntEntity(id) {
