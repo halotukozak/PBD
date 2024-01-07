@@ -242,8 +242,143 @@ class InsertManager(private val faker: Faker) {
     }
   }.mapNotNull { it?.id?.value }
 
-  private fun <T> safeTransaction(f: () -> T): T? = try {
-    transaction {
+  suspend fun insertBasketItems(
+    basketIds: List<Int>,
+    courseIds: List<Int>,
+    meetingIds: List<Int>,
+    studiesIds: List<Int>,
+    webinarIds: List<Int>,
+    max: Int = 10,
+  ): Int = basketIds.flatMap { basket ->
+    List(faker.random.nextInt(max)) {
+      val content = faker.random.nextInt(0, 3)
+      safeTransaction {
+        BasketItems.insert {
+          it[basketId] = basket
+          it[courseId] = if (content == 0) courseIds.random() else null
+          it[meetingId] = if (content == 1) meetingIds.random() else null
+          it[studiesId] = if (content == 2) studiesIds.random() else null
+          it[webinarId] = if (content == 3) webinarIds.random() else null
+        }
+      }
+    }
+  }.count()
+
+  suspend fun insertInternshipStudents(
+    internshipIds: List<Int>,
+    studentIds: List<Int>,
+    max: Int = 10,
+  ): Int = internshipIds.flatMap { internship ->
+    List(faker.random.nextInt(max)) {
+      safeTransaction {
+        InternshipStudent.insert {
+          it[internshipId] = internship
+          it[studentId] = studentIds.random()
+          it[examResult] = faker.random.nextInt(0, 100)
+        }
+      }
+    }
+  }.count()
+
+  suspend fun insertStudentCourses(
+    courseIds: List<Int>,
+    studentIds: List<Int>,
+    max: Int = 10,
+  ): Int = studentIds.flatMap { student ->
+    List(faker.random.nextInt(max)) {
+      safeTransaction {
+        StudentCourses.insert {
+          it[studentId] = student
+          it[courseId] = courseIds.random()
+        }
+      }
+    }
+  }.count()
+
+  suspend fun insertStudentMeetings(
+    meetingIds: List<Int>,
+    studentIds: List<Int>,
+    max: Int = 10,
+  ): Int = studentIds.flatMap { student ->
+    List(faker.random.nextInt(max)) {
+      safeTransaction {
+        StudentMeetings.insert {
+          it[studentId] = student
+          it[meetingId] = meetingIds.random()
+          it[paymentDate] = faker.date()
+        }
+      }
+    }
+  }.count()
+
+  suspend fun insertStudentMeetingAttendance(
+    meetingIds: List<Int>,
+    studentIds: List<Int>,
+    max: Int = 10,
+  ): Int = studentIds.flatMap { student ->
+    List(faker.random.nextInt(max)) {
+      safeTransaction {
+        StudentMeetingAttendance.insert {
+          it[studentId] = student
+          it[meetingId] = meetingIds.random()
+        }
+      }
+    }
+  }.count()
+
+  suspend fun insertStudentWebinars(
+    webinarIds: List<Int>,
+    studentIds: List<Int>,
+    max: Int = 10,
+  ): Int = studentIds.flatMap { student ->
+    List(faker.random.nextInt(max)) {
+      safeTransaction {
+        StudentWebinars.insert {
+          it[studentId] = student
+          it[webinarId] = webinarIds.random()
+          it[paymentDate] = faker.date()
+        }
+      }
+    }
+  }.count()
+
+  suspend fun insertStudentStudies(
+    studiesIds: List<Int>,
+    studentIds: List<Int>,
+    max: Int = 10,
+  ): Int = studentIds.flatMap { student ->
+    val registrationPaymentDat = faker.date()
+    List(faker.random.nextInt(max)) {
+      safeTransaction {
+        StudentStudies.insert {
+          it[studentId] = student
+          it[studiesId] = studiesIds.random()
+          it[registrationPaymentDate] = registrationPaymentDat
+          it[certificatePostDate] = if (faker.random.nextBoolean()) faker.date(registrationPaymentDat) else null
+        }
+      }
+    }
+  }.count()
+
+  suspend fun insertStudentSemesters(
+    semesterIds: List<Int>,
+    studentIds: List<Int>,
+    max: Int = 10,
+  ): Int = studentIds.flatMap { student ->
+    List(faker.random.nextInt(max)) {
+      safeTransaction {
+        StudentSemesters.insert {
+          it[studentId] = student
+          it[semesterId] = semesterIds.random()
+          it[paymentDate] = faker.date()
+        }
+      }
+    }
+  }.count()
+
+
+  private suspend fun <T> safeTransaction(f: () -> T): T? = try {
+    newSuspendedTransaction {
       addLogger(StdOutSqlLogger)
       f()
     }
