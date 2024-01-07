@@ -1,6 +1,5 @@
 package org.oolab.model
 
-import com.microsoft.sqlserver.jdbc.SQLServerException
 import io.github.serpro69.kfaker.Faker
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
@@ -286,10 +285,19 @@ class InsertManager(private val faker: Faker) {
     max: Int = 10,
   ): Int = studentIds.flatMap { student ->
     List(faker.random.nextInt(max)) {
+      val advancePaymentDat = faker.date()
+      val fullPaymentDat = faker.date(advancePaymentDat)
+      val creditDat = faker.date(fullPaymentDat)
+      val certificatePostDat = faker.date(creditDat)
+
       safeTransaction {
         StudentCourses.insert {
           it[studentId] = student
           it[courseId] = courseIds.random()
+          it[advancePaymentDate] = advancePaymentDat
+          it[fullPaymentDate] = fullPaymentDat
+          it[creditDate] = creditDat
+          it[certificatePostDate] = certificatePostDat
         }
       }
     }
@@ -382,16 +390,15 @@ class InsertManager(private val faker: Faker) {
       addLogger(StdOutSqlLogger)
       f()
     }
-  } catch (e: SQLServerException) {
+  } catch (e: Exception) {
     logger.warn(e.message)
     if (listOf(
         "Violation of UNIQUE KEY constraint",
         "Violation of PRIMARY KEY constraint",
-        "Cannot insert duplicate key",
       ).any { it in e.message.orEmpty() }
     ) null
     else {
-      throw e
+      null
     }
   }
 

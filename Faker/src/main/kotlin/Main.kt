@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.Logger
 
 suspend fun main() {
@@ -68,7 +68,7 @@ suspend fun main() {
 
   logger.info { "Tables initialized" }
 
-  newSuspendedTransaction {
+  transaction {
     val names = tables.map { it.tableName }.toSet()
     val dbNames = SchemaUtils.listTables().map { it.removePrefix("dbo.") }.toSet()
     require(names == dbNames) {
@@ -80,7 +80,7 @@ suspend fun main() {
 
   logger.info { "Tables checked" }
 
-  newSuspendedTransaction {
+  transaction {
     retry(3, logger) {
       require(tables.fold(true) { success, it ->
         try {
@@ -94,7 +94,7 @@ suspend fun main() {
     }
   }
 
-  newSuspendedTransaction {
+  transaction {
     tables.forEach {
       require(it.selectAll().empty()) {
         "Table ${it.tableName} is not empty"
@@ -104,7 +104,7 @@ suspend fun main() {
 
   logger.info { "Tables cleared" }
 
-  newSuspendedTransaction {
+  transaction {
     SchemaUtils.statementsRequiredToActualizeScheme(*tables.toTypedArray())
   }.let {
     require(it.isEmpty()) {
