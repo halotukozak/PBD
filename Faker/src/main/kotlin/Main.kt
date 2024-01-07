@@ -8,10 +8,10 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.slf4j.Logger
 
-fun main() {
+suspend fun main() {
   val logger = KotlinLogging.logger("Main")
   require(logger.isWarnEnabled && logger.isInfoEnabled && logger.isDebugEnabled) {
     "Logger not configured properly"
@@ -68,7 +68,7 @@ fun main() {
 
   logger.info { "Tables initialized" }
 
-  transaction {
+  newSuspendedTransaction {
     val names = tables.map { it.tableName }.toSet()
     val dbNames = SchemaUtils.listTables().map { it.removePrefix("dbo.") }.toSet()
     require(names == dbNames) {
@@ -80,7 +80,7 @@ fun main() {
 
   logger.info { "Tables checked" }
 
-  transaction {
+  newSuspendedTransaction {
     retry(3, logger) {
       require(tables.fold(true) { success, it ->
         try {
@@ -94,7 +94,7 @@ fun main() {
     }
   }
 
-  transaction {
+  newSuspendedTransaction {
     tables.forEach {
       require(it.selectAll().empty()) {
         "Table ${it.tableName} is not empty"
@@ -104,7 +104,7 @@ fun main() {
 
   logger.info { "Tables cleared" }
 
-  transaction {
+  newSuspendedTransaction {
     SchemaUtils.statementsRequiredToActualizeScheme(*tables.toTypedArray())
   }.let {
     require(it.isEmpty()) {
@@ -144,7 +144,23 @@ fun main() {
   logger.info { "${moduleIds.count()} Modules inserted" }
   val meetingIds = insertManager.insertMeetings(moduleIds, subjectIds, translatorIds, teacherIds)
   logger.info { "${meetingIds.count()} Meetings inserted" }
-  
+
+  val basketItems = insertManager.insertBasketItems(basketIds, courseIds, meetingIds, studiesIds, webinarIds)
+  logger.info { "$basketItems BasketItems inserted" }
+  val internshipStudents = insertManager.insertInternshipStudents(internshipIds, studentIds)
+  logger.info { "$internshipStudents InternshipStudents inserted" }
+  val studentCourses = insertManager.insertStudentCourses(courseIds, studentIds)
+  logger.info { "$studentCourses StudentCourses inserted" }
+  val studentMeetings = insertManager.insertStudentMeetings(meetingIds, studentIds)
+  logger.info { "$studentMeetings StudentMeetings inserted" }
+  val studentMeetingAttendance = insertManager.insertStudentMeetingAttendance(studentIds, meetingIds)
+  logger.info { "$studentMeetingAttendance StudentMeetingAttendance inserted" }
+  val studentWebinars = insertManager.insertStudentWebinars(webinarIds, studentIds)
+  logger.info { "$studentWebinars StudentWebinars inserted" }
+  val studentStudies = insertManager.insertStudentStudies(studiesIds, studentIds)
+  logger.info { "$studentStudies StudentStudies inserted" }
+  val studentSemesters = insertManager.insertStudentSemesters(semesterIds, studentIds)
+  logger.info { "$studentSemesters StudentSemesters inserted" }
 }
 
 fun <T> retry(

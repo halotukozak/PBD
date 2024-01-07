@@ -1,6 +1,7 @@
 package model
 
 import io.github.serpro69.kfaker.Faker
+import io.github.serpro69.kfaker.provider.Finance
 import io.github.serpro69.kfaker.provider.Internet
 import io.github.serpro69.kfaker.provider.Name
 import java.time.LocalDate
@@ -40,6 +41,8 @@ fun Internet.email(name: Name): String = with(name) {
       .lowercase()
   )
 }
+
+fun Finance.price(min: Float = 0f, max: Float = 1000f): Float = ThreadLocalRandom.current().nextFloat(min, max)
 
 fun String.slug() = lowercase()
   .replace("\n", " ")

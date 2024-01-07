@@ -2,12 +2,17 @@ package org.oolab.model
 
 import com.microsoft.sqlserver.jdbc.SQLServerException
 import io.github.serpro69.kfaker.Faker
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
 import model.*
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 class InsertManager(private val faker: Faker) {
   private val logger = KotlinLogging.logger("InsertManager")
@@ -18,7 +23,7 @@ class InsertManager(private val faker: Faker) {
     }
   }
 
-  fun insertMeetings(
+  suspend fun insertMeetings(
     moduleIds: List<Int>,
     subjectIds: List<Int>,
     translatorIds: List<Int>,
@@ -33,7 +38,7 @@ class InsertManager(private val faker: Faker) {
         it[url] = faker.internet.url(domain = faker.pokemon.names(), content = faker.yoda.quotes())
         it[date] = faker.dateTime()
         it[type] = faker.random.nextEnum<MeetingType>()
-        it[standalonePrice] = faker.random.nextFloat()
+        it[standalonePrice] = faker.finance.price()
         it[translatorId] = if (faker.random.nextBoolean()) translatorIds.random() else null
         it[substitutingTeacherId] = if (faker.random.nextBoolean()) teacherIds.random() else null
         it[studentLimit] = faker.random.nextInt(1, 20)
@@ -41,7 +46,7 @@ class InsertManager(private val faker: Faker) {
     }
   }.mapNotNull { it?.value }
 
-  fun insertModules(
+  suspend fun insertModules(
     courseIds: List<Int>,
     roomIds: List<Int>,
     teacherIds: List<Int>,
@@ -62,13 +67,13 @@ class InsertManager(private val faker: Faker) {
     }
   }.mapNotNull { it?.value }
 
-  fun insertCourses(
+  suspend fun insertCourses(
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
       Course.new {
-        price = faker.random.nextFloat()
-        advancePrice = faker.random.nextFloat()
+        price = faker.finance.price()
+        advancePrice = faker.finance.price()
         subject = faker.commerce.productName()
         language = faker.nation.language()
         studentLimit = faker.random.nextInt(1, 5)
@@ -76,7 +81,7 @@ class InsertManager(private val faker: Faker) {
     }
   }.mapNotNull { it?.id?.value }
 
-  fun insertRooms(
+  suspend fun insertRooms(
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
@@ -87,12 +92,13 @@ class InsertManager(private val faker: Faker) {
     }
   }.mapNotNull { it?.id?.value }
 
-  fun insertBaskets(
+  suspend fun insertBaskets(
     studentIds: List<Int>,
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
       val isOpen = faker.random.nextBoolean()
+      val createDat = faker.date()
       Baskets.insertAndGetId {
         it[studentId] = studentIds.random()
         it[paymentUrl] = if (isOpen) null else faker.internet.url(
@@ -100,13 +106,13 @@ class InsertManager(private val faker: Faker) {
           content = faker.harryPotter.quotes(),
         )
         it[state] = if (isOpen) BasketState.open else BasketState.entries.filter { it != BasketState.open }.random()
-        it[createDate] = faker.date()
-        it[paymentDate] = if (faker.random.nextBoolean()) faker.date() else null
+        it[createDate] = createDat
+        it[paymentDate] = if (faker.random.nextBoolean()) faker.date(createDat) else null
       }
     }
   }.mapNotNull { it?.value }
 
-  fun insertInternships(
+  suspend fun insertInternships(
     studiesIds: List<Int>,
     n: Int = 10,
   ): List<Int> = List(n) {
@@ -118,7 +124,7 @@ class InsertManager(private val faker: Faker) {
     }
   }.mapNotNull { it?.value }
 
-  fun insertSubjects(
+  suspend fun insertSubjects(
     semesterIds: List<Int>,
     teacherIds: List<Int>,
     n: Int = 10,
@@ -132,7 +138,7 @@ class InsertManager(private val faker: Faker) {
     }
   }.mapNotNull { it?.value }
 
-  fun insertSemesters(
+  suspend fun insertSemesters(
     studiesIds: List<Int>,
   ): List<Int> = studiesIds.flatMap { studiesId ->
     val numberOfSemesters = faker.random.nextInt(1, 12)
@@ -140,43 +146,47 @@ class InsertManager(private val faker: Faker) {
       endDate.plusDays(1)?.let { it to it.plusMonths(6) }
     }
       .take(numberOfSemesters)
-      .mapIndexed { i, (startDat, endDat) ->
+      .mapIndexed { i, x -> i to x }
+      .asFlow()
+      .map { (i, dates) ->
         safeTransaction {
           Semesters.insertAndGetId {
             it[number] = i + 1
             it[this.studiesId] = studiesId
             it[schedule] =
               faker.internet.url(domain = faker.coffee.blendName(), content = faker.spongebob.quotes()).take(50)
-            it[startDate] = startDat
-            it[endDate] = endDat
+            it[startDate] = dates.first
+            it[endDate] = dates.second
           }
         }
       }
-  }.mapNotNull { it?.value }
+      .mapNotNull { it?.value }
+      .toList()
+  }
 
-  fun insertStudies(
+  suspend fun insertStudies(
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
       Studies.new {
         syllabus =
           List(faker.random.nextInt(5, 30)) { faker.bible.quote() }.reduce { s, other -> "$s $other" }.take(5000)
-        price = faker.random.nextFloat()
-        advancePrice = faker.random.nextFloat()
+        price = faker.finance.price()
+        advancePrice = faker.finance.price()
         language = faker.nation.language()
         studentLimit = faker.random.nextInt(1, 5)
       }
     }
   }.mapNotNull { it?.id?.value }
 
-  fun insertWebinars(
+  suspend fun insertWebinars(
     translatorIds: List<Int>,
     teacherIds: List<Int>,
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
       Webinars.insertAndGetId {
-        it[price] = faker.random.nextFloat()
+        it[price] = faker.finance.price()
         it[date] = faker.dateTime()
         it[url] = faker.internet.url(domain = faker.witcher.potions(), content = faker.starWars.quote())
         it[language] = faker.nation.language()
@@ -186,7 +196,7 @@ class InsertManager(private val faker: Faker) {
     }
   }.mapNotNull { it?.value }
 
-  fun insertTranslators(
+  suspend fun insertTranslators(
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
@@ -202,7 +212,7 @@ class InsertManager(private val faker: Faker) {
     }
   }.mapNotNull { it?.id?.value }
 
-  fun insertTeachers(
+  suspend fun insertTeachers(
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
@@ -217,7 +227,7 @@ class InsertManager(private val faker: Faker) {
     }
   }.mapNotNull { it?.id?.value }
 
-  fun insertStudents(
+  suspend fun insertStudents(
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
@@ -239,7 +249,15 @@ class InsertManager(private val faker: Faker) {
     }
   } catch (e: SQLServerException) {
     logger.warn(e.message)
-    if (e.message?.contains("Violation of UNIQUE KEY constraint") == true) null
-    else throw e
+    if (listOf(
+        "Violation of UNIQUE KEY constraint",
+        "Violation of PRIMARY KEY constraint",
+        "Cannot insert duplicate key",
+      ).any { it in e.message.orEmpty() }
+    ) null
+    else {
+      throw e
+    }
   }
+
 }
