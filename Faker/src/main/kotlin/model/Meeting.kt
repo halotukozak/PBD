@@ -9,13 +9,14 @@ import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.javatime.date
+import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.or
 
 object Meetings : IntIdTable("Meeting") {
   val moduleId = integer("module_id").references(Modules.id, onDelete = ReferenceOption.NO_ACTION).nullable()
   val subjectId = integer("subject_id").references(Subjects.id, onDelete = ReferenceOption.NO_ACTION).nullable()
   val url = varchar("url", 200).nullable()
-  val date = date("date")
+  val date = datetime("date")
   val type = enumerationByName<MeetingType>("type", 10)
   val standalonePrice = float("standalone_price").nullable()
   val translatorId =

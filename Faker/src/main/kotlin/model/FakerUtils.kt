@@ -1,21 +1,52 @@
 package model
 
 import io.github.serpro69.kfaker.Faker
+import io.github.serpro69.kfaker.provider.Finance
 import io.github.serpro69.kfaker.provider.Internet
-import java.time.Instant
+import io.github.serpro69.kfaker.provider.Name
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneOffset
 import java.util.concurrent.ThreadLocalRandom
 
 fun Faker.date(
-  startTime: LocalDate = LocalDate.of(1900, 1, 1),
-  endTime: LocalDate = LocalDate.of(2100, 12, 31),
+  startDate: LocalDate = LocalDate.of(1900, 1, 1),
+  endDate: LocalDate = LocalDate.of(2100, 12, 31),
 ): LocalDate {
-  val startSeconds = startTime.toEpochDay()
-  val endSeconds = endTime.toEpochDay()
+  val startSeconds = startDate.toEpochDay()
+  val endSeconds = endDate.toEpochDay()
   val randomTime = ThreadLocalRandom.current().nextLong(startSeconds, endSeconds)
 
   return LocalDate.ofEpochDay(randomTime)
 }
 
-fun Internet.email(name: String, surname: String): String = email("${name}.${surname}".lowercase())
+fun Faker.dateTime(
+  startTime: LocalDateTime = LocalDateTime.of(LocalDate.of(1900, 1, 1), LocalTime.MIN),
+  endTime: LocalDateTime = LocalDateTime.of(LocalDate.of(2100, 12, 31), LocalTime.MAX),
+): LocalDateTime {
+  val startSeconds = startTime.toEpochSecond(ZoneOffset.UTC)
+  val endSeconds = endTime.toEpochSecond(ZoneOffset.UTC)
+  val randomTime = ThreadLocalRandom.current().nextLong(startSeconds, endSeconds)
+
+  return LocalDateTime.ofEpochSecond(randomTime, 0, ZoneOffset.UTC)
+}
+
+fun Internet.url(domain: String = domain(), content: String): String = "https://${domain.slug()}/${content.slug()}".take(200)
+fun Internet.email(name: Name): String = with(name) {
+  email(
+    "${firstName()} ${lastName()}"
+      .replace(".", "")
+      .replace(" ", ".")
+      .lowercase()
+  )
+}
+
+fun Finance.price(min: Float = 0f, max: Float = 1000f): Float = ThreadLocalRandom.current().nextFloat(min, max)
+
+fun String.slug() = lowercase()
+  .replace("\n", " ")
+  .replace("[^a-z\\d\\s]".toRegex(), " ")
+  .split(" ")
+  .joinToString("-")
+  .replace("-+".toRegex(), "-")
