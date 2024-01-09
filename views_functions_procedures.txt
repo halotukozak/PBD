@@ -1,0 +1,51 @@
+Bartłomiej Kozak, Bartosz Buczek, Tomasz Kurcon
+
+Widoki
+Raporty finansowe – zestawienie przychodów dla każdego webinaru
+Raporty finansowe – zestawienie przychodów dla każdego kursu
+Raporty finansowe – zestawienie przychodów dla każdych studiów
+Lista osób, które zakupiły pojedyczy meeting
+Lista „dłużników” – osoby, które skorzystały z usług, ale nie uiściły pełnej opłaty (wydarzenie już się rozpoczęło)
+Lista osób które nie zapłaciły jeszcze za nadchodzące wydarzenie
+raporty dotyczace zapisanych osob na poszczegolne wydarzenia
+Ogólny raport dotyczący liczby zapisanych osób na przyszłe wydarzenie (studia / kursy / webinary) (z informacją, czy wydarzenie jest stacjonarnie, czy zdalnie).
+Ogólny raport dotyczący frekwencji na zakończonych już wydarzeniach.
+Lista obecności dla każdego szkolenia z datą, imieniem, nazwiskiem i informacją czy uczestnik był obecny, czy nie.
+Raport bilokacji: lista osób, które są zapisane na co najmniej dwa przyszłe szkolenia, które ze sobą kolidują czasowo.
+Raport bilokacji dla nauczycieli i tłumaczy
+Raport szkolen prowadzonych przez nauczyciela / tłumaczonych przez tłumacza
+Lista absolwentów studiów / kursu / internshipu
+Lista absolwentów którzy nie otrzymali certyfikatu ukoczenia
+Raport bilokacji dla pomieszczeń
+Lista nieopłacalnych wydarze (liczba zajętych miejsc < 10%)
+Lista studentów, którzy nie zaliczyli egzaminu
+Lista nieudanych płatności z danego okresu wraz z wartością koszyka
+Historia zmiany parametru
+
+
+
+Procedury:
+dodawanie:
+-studentów / nauczycieli / tłumaczy
+-kursów / webinarów / studiów
+-dodawanie semestrów i przedmiotów
+-modułów
+-meetingów
+-obsługa koszyka - dodawanie produktów, usuwanie produktów, płatność udana / nieudana
+-zapisywanie studentów na kursy / webinary / studia
+-obsługa listy obecności na wszystkich rodzajach wydarzeń
+-zmiana sali / nauczyciela / tłumacza na wydarzeniu
+-zapisywanie na internship, sprawdzanie obecności na nich
+-dodawanie ocen z egzaminów
+-zmiana danych personalnychh studentów / nauczycieli / tłumaczy
+-zmiana ceny kursu / webinaru / studiów / meetingu
+-zmiana parametrów systemu
+
+
+
+Funkcje:
+-dane personalne studenta / nauczyciela / tłumacza
+-sprawdzanie czy student był obecny na wydarzeniu
+-czy student zakonczył internship
+-wartość parametru (aktualna)
+-inne pomocnicze funkcje do widoków
