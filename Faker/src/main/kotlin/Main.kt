@@ -144,6 +144,8 @@ suspend fun main() {
   logger.info { "${moduleIds.count()} Modules inserted" }
   val meetingIds = insertManager.insertMeetings(moduleIds, subjectIds, translatorIds, teacherIds)
   logger.info { "${meetingIds.count()} Meetings inserted" }
+  val parameters = insertManager.insertParameters()
+  logger.info { "$parameters Parameters inserted" }
 
   val basketItems = insertManager.insertBasketItems(basketIds, courseIds, meetingIds, studiesIds, webinarIds)
   logger.info { "$basketItems BasketItems inserted" }

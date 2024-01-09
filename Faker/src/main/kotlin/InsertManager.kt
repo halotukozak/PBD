@@ -37,7 +37,7 @@ class InsertManager(private val faker: Faker) {
         it[url] = faker.internet.url(domain = faker.pokemon.names(), content = faker.yoda.quotes())
         it[date] = faker.dateTime()
         it[type] = faker.random.nextEnum<MeetingType>()
-        it[standalonePrice] = faker.finance.price()
+        it[standalonePrice] = faker.price()
         it[translatorId] = if (faker.random.nextBoolean()) translatorIds.random() else null
         it[substitutingTeacherId] = if (faker.random.nextBoolean()) teacherIds.random() else null
         it[studentLimit] = faker.random.nextInt(1, 20)
@@ -71,8 +71,8 @@ class InsertManager(private val faker: Faker) {
   ): List<Int> = List(n) {
     safeTransaction {
       Course.new {
-        price = faker.finance.price()
-        advancePrice = faker.finance.price()
+        price = faker.price()
+        advancePrice = faker.price()
         subject = faker.commerce.productName()
         language = faker.nation.language()
         studentLimit = faker.random.nextInt(1, 5)
@@ -170,8 +170,8 @@ class InsertManager(private val faker: Faker) {
       Studies.new {
         syllabus =
           List(faker.random.nextInt(5, 30)) { faker.bible.quote() }.reduce { s, other -> "$s $other" }.take(5000)
-        price = faker.finance.price()
-        advancePrice = faker.finance.price()
+        price = faker.price()
+        advancePrice = faker.price()
         language = faker.nation.language()
         studentLimit = faker.random.nextInt(1, 5)
       }
@@ -185,7 +185,7 @@ class InsertManager(private val faker: Faker) {
   ): List<Int> = List(n) {
     safeTransaction {
       Webinars.insertAndGetId {
-        it[price] = faker.finance.price()
+        it[price] = faker.price()
         it[date] = faker.dateTime()
         it[url] = faker.internet.url(domain = faker.witcher.potions(), content = faker.starWars.quote())
         it[language] = faker.nation.language()
@@ -241,6 +241,22 @@ class InsertManager(private val faker: Faker) {
     }
   }.mapNotNull { it?.id?.value }
 
+  suspend fun insertParameters(): Int = listOf(
+    "availability_period_in_days" to 30,
+    "module_completion_threshold_in_percent" to 80,
+    "internship_completion_threshold_in_percent" to 80,
+    "internship_length_in_days" to 14,
+    "internship_completion_threshold_in_percent" to 100,
+  ).mapNotNull { (name, value) ->
+    safeTransaction {
+      Parameters.insert {
+        it[this.name] = name
+        it[this.value] = value.toString()
+      }
+    }
+  }.count()
+
+
   suspend fun insertBasketItems(
     basketIds: List<Int>,
     courseIds: List<Int>,
@@ -260,7 +276,7 @@ class InsertManager(private val faker: Faker) {
           it[webinarId] = if (content == 3) webinarIds.random() else null
         }
       }
-    }
+    }.filterNotNull()
   }.count()
 
   suspend fun insertInternshipStudents(
@@ -276,7 +292,7 @@ class InsertManager(private val faker: Faker) {
           it[examResult] = faker.random.nextInt(0, 100)
         }
       }
-    }
+    }.filterNotNull()
   }.count()
 
   suspend fun insertStudentCourses(
@@ -285,22 +301,22 @@ class InsertManager(private val faker: Faker) {
     max: Int = 10,
   ): Int = studentIds.flatMap { student ->
     List(faker.random.nextInt(max)) {
-      val advancePaymentDat = faker.date()
-      val fullPaymentDat = faker.date(advancePaymentDat)
-      val creditDat = faker.date(fullPaymentDat)
-      val certificatePostDat = faker.date(creditDat)
+      val advancePaymentDate = faker.date()
+      val fullPaymentDate = faker.date(advancePaymentDate)
+      val creditDate = faker.date(fullPaymentDate)
+      val certificatePostDate = faker.date(creditDate)
 
       safeTransaction {
         StudentCourses.insert {
-          it[studentId] = student
-          it[courseId] = courseIds.random()
-          it[advancePaymentDate] = advancePaymentDat
-          it[fullPaymentDate] = fullPaymentDat
-          it[creditDate] = creditDat
-          it[certificatePostDate] = certificatePostDat
+          it[this.studentId] = student
+          it[this.courseId] = courseIds.random()
+          it[this.advancePaymentDate] = advancePaymentDate
+          it[this.fullPaymentDate] = fullPaymentDate
+          it[this.creditDate] = creditDate
+          it[this.certificatePostDate] = certificatePostDate
         }
       }
-    }
+    }.filterNotNull()
   }.count()
 
   suspend fun insertStudentMeetings(
@@ -316,7 +332,7 @@ class InsertManager(private val faker: Faker) {
           it[paymentDate] = faker.date()
         }
       }
-    }
+    }.filterNotNull()
   }.count()
 
   suspend fun insertStudentMeetingAttendance(
@@ -331,7 +347,7 @@ class InsertManager(private val faker: Faker) {
           it[meetingId] = meetingIds.random()
         }
       }
-    }
+    }.filterNotNull()
   }.count()
 
   suspend fun insertStudentWebinars(
@@ -347,25 +363,25 @@ class InsertManager(private val faker: Faker) {
           it[paymentDate] = faker.date()
         }
       }
-    }
+    }.filterNotNull()
   }.count()
 
   suspend fun insertStudentStudies(
     studiesIds: List<Int>,
     studentIds: List<Int>,
     max: Int = 10,
-  ): Int = studentIds.flatMap { student ->
-    val registrationPaymentDat = faker.date()
+  ): Int = studentIds.flatMap { studentId ->
+    val registrationPaymentDate = faker.date()
     List(faker.random.nextInt(max)) {
       safeTransaction {
         StudentStudies.insert {
-          it[studentId] = student
-          it[studiesId] = studiesIds.random()
-          it[registrationPaymentDate] = registrationPaymentDat
-          it[certificatePostDate] = if (faker.random.nextBoolean()) faker.date(registrationPaymentDat) else null
+          it[this.studentId] = studentId
+          it[this.studiesId] = studiesIds.random()
+          it[this.registrationPaymentDate] = registrationPaymentDate
+          it[this.certificatePostDate] = if (faker.random.nextBoolean()) faker.date(registrationPaymentDate) else null
         }
       }
-    }
+    }.filterNotNull()
   }.count()
 
   suspend fun insertStudentSemesters(
@@ -381,7 +397,7 @@ class InsertManager(private val faker: Faker) {
           it[paymentDate] = faker.date()
         }
       }
-    }
+    }.filterNotNull()
   }.count()
 
 

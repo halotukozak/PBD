@@ -1,7 +1,6 @@
 package model
 
 import io.github.serpro69.kfaker.Faker
-import io.github.serpro69.kfaker.provider.Finance
 import io.github.serpro69.kfaker.provider.Internet
 import io.github.serpro69.kfaker.provider.Name
 import java.time.LocalDate
@@ -32,7 +31,9 @@ fun Faker.dateTime(
   return LocalDateTime.ofEpochSecond(randomTime, 0, ZoneOffset.UTC)
 }
 
-fun Internet.url(domain: String = domain(), content: String): String = "https://${domain.slug()}/${content.slug()}".take(200)
+fun Internet.url(domain: String = domain(), content: String): String =
+  "https://${domain.slug()}/${content.slug()}".take(200)
+
 fun Internet.email(name: Name): String = with(name) {
   email(
     "${firstName()} ${lastName()}"
@@ -42,7 +43,8 @@ fun Internet.email(name: Name): String = with(name) {
   )
 }
 
-fun Finance.price(min: Float = 0f, max: Float = 1000f): Float = ThreadLocalRandom.current().nextFloat(min, max)
+fun Faker.price(min: Float = 0f, max: Float = 1000f): Float =
+  String.format("%.2f", min + random.nextFloat() * (max - min)).toFloat()
 
 fun String.slug() = lowercase()
   .replace("\n", " ")
