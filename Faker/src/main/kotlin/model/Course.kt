@@ -1,13 +1,11 @@
 package model
 
-import io.github.serpro69.kfaker.Faker
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.javatime.date
 
 object Courses : IntIdTable("Course") {
@@ -42,9 +40,7 @@ object StudentCourses : Table("StudentCourse") {
   val creditDate = date("credit_date").nullable()
   val certificatePostDate = date("certificate_post_date").nullable()
 
-  init {
-    index(true, studentId, courseId)
-  }
+  override val primaryKey: PrimaryKey = PrimaryKey(studentId, courseId)
 
   val dateChecks =
     check { advancePaymentDate lessEq fullPaymentDate; fullPaymentDate lessEq creditDate; creditDate lessEq certificatePostDate }

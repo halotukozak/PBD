@@ -71,7 +71,7 @@ CREATE TABLE Webinar
     FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
-    CHECK (price >= 0),
+    CONSTRAINT not_negative_webinar_price CHECK (price >= 0),
 )
 
 CREATE TABLE StudentWebinar
@@ -97,9 +97,9 @@ CREATE TABLE Course
 
     PRIMARY KEY (id),
 
-    CHECK (price > 0),
-    CHECK (advance_price >= 0),
-    CHECK (student_limit > 0),
+    CONSTRAINT positive_course_price CHECK (price > 0),
+    CONSTRAINT not_negative_advance_price CHECK (advance_price >= 0),
+    CONSTRAINT positive_course_student_limit CHECK (student_limit > 0),
 )
 
 CREATE TABLE StudentCourse
@@ -113,12 +113,12 @@ CREATE TABLE StudentCourse
 
     PRIMARY KEY (student_id, course_id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE NO ACTION,
-    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE NO ACTION,
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE CASCADE,
 
-    CHECK (advance_payment_date <= full_payment_date),
-    CHECK (full_payment_date <= credit_date),
-    CHECK (credit_date <= certificate_post_date),
+    CONSTRAINT advance_payment_date_lowerEq_full_payment_date CHECK (advance_payment_date <= full_payment_date),
+    CONSTRAINT full_payment_date_lowerEq_credit_date CHECK (full_payment_date <= credit_date),
+    CONSTRAINT credit_date_lowerEq_certificate_post_date CHECK (credit_date <= certificate_post_date),
 )
 
 CREATE TABLE Room
@@ -140,29 +140,21 @@ CREATE TABLE Module
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE NO ACTION,
+    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE CASCADE,
     FOREIGN KEY (room_id) REFERENCES Room (id) ON DELETE NO ACTION,
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
-    CHECK (
+    CONSTRAINT type_and_room CHECK (
         type = 'hybrid' OR
         type = 'in_person' AND room_id IS NOT NULL OR
         type IN ('online_sync', 'online_async') AND room_id IS NULL
         ),
 )
 
-CREATE TABLE StudentMeetingAttendance
-(
-    student_id int NOT NULL,
-    meeting_id int NOT NULL,
-
-    PRIMARY KEY (student_id, meeting_id),
-)
-
 CREATE TABLE Studies
 (
     id            int                          NOT NULL IDENTITY (1, 1),
-    syllabus      varchar(1000),
+    syllabus      varchar(5000),
     price         float                        NOT NULL,
     advance_price float                        NOT NULL,
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
@@ -170,9 +162,9 @@ CREATE TABLE Studies
 
     PRIMARY KEY (id),
 
-    CHECK (price > 0),
-    CHECK (advance_price >= 0),
-    CHECK (student_limit > 0),
+    CONSTRAINT positive_studies_price CHECK (price > 0),
+    CONSTRAINT not_negative_advance_studies_price CHECK (advance_price >= 0),
+    CONSTRAINT positive_studies_student_limit CHECK (student_limit > 0),
 )
 
 CREATE TABLE Semester
@@ -187,8 +179,8 @@ CREATE TABLE Semester
     PRIMARY KEY (id),
 
     FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE NO ACTION,
-    CHECK (number > 0 AND number <= 12),
-    CHECK (start_date < end_date),
+    CONSTRAINT number_between_1_and_12 CHECK (number > 0 AND number <= 12),
+    CONSTRAINT start_date_lower_end_date CHECK (start_date < end_date),
     UNIQUE (studies_id, number),
 )
 
@@ -216,7 +208,7 @@ CREATE TABLE StudentStudies
     FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
     FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE CASCADE,
 
-    CHECK (registration_payment_date < certificate_post_date),
+    CONSTRAINT registration_payment_date_lower_certificate_post_date CHECK (registration_payment_date < certificate_post_date),
 )
 
 CREATE TABLE Subject
@@ -224,12 +216,12 @@ CREATE TABLE Subject
     id          int          NOT NULL IDENTITY (1, 1),
     name        varchar(200) NOT NULL,
     semester_id int          NOT NULL,
-    teacher_id  int          NOT NULL,
+    teacher_id  int,
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (semester_id) REFERENCES Semester (id) ON DELETE NO ACTION,
-    FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
+    FOREIGN KEY (semester_id) REFERENCES Semester (id) ON DELETE CASCADE,
+    FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE SET NULL,
 )
 
 CREATE TABLE Internship
@@ -240,34 +232,23 @@ CREATE TABLE Internship
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE NO ACTION,
+    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE CASCADE,
 )
 
-CREATE TABLE InternshipAttendance
+CREATE TABLE InternshipStudent
 (
     student_id    int           NOT NULL,
     internship_id int           NOT NULL,
     attended_days int DEFAULT 0 NOT NULL,
+    exam_result   int           NOT NULL,
 
     PRIMARY KEY (student_id, internship_id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE NO ACTION,
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
+    FOREIGN KEY (internship_id) REFERENCES Internship (id) ON DELETE CASCADE,
 
-    CHECK (attended_days >= 0),
-)
-
-CREATE TABLE InternshipExam
-(
-    student_id    int NOT NULL,
-    internship_id int NOT NULL,
-    result        int NOT NULL,
-
-    PRIMARY KEY (student_id, internship_id),
-
-    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE NO ACTION,
-    FOREIGN KEY (internship_id) REFERENCES Internship (id) ON DELETE NO ACTION,
-
-    CHECK (result >= 0 AND result <= 100),
+    CONSTRAINT not_negative_attended_days CHECK (attended_days >= 0),
+    CONSTRAINT exam_result_between_0_and_100 CHECK (exam_result >= 0 AND exam_result <= 100),
 )
 
 CREATE TABLE Meeting
@@ -280,7 +261,7 @@ CREATE TABLE Meeting
     type                    varchar(10) NOT NULL,
     standalone_price        float,
     translator_id           int,
-    substituting_teacher_id int,
+    substituting_teacher_id int DEFAULT NULL,
     student_limit           int         NOT NULL,
 
     PRIMARY KEY (id),
@@ -288,16 +269,15 @@ CREATE TABLE Meeting
     FOREIGN KEY (module_id) REFERENCES Module (id) ON DELETE NO ACTION,
     FOREIGN KEY (subject_id) REFERENCES Subject (id) ON DELETE NO ACTION,
     FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
-    FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id) ON DELETE SET NULL,
+    FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
-    CHECK (
+    CONSTRAINT polymorphic CHECK (
         module_id IS NOT NULL AND subject_id IS NULL OR
         module_id IS NULL AND subject_id IS NOT NULL
         ),
-    CHECK (type = 'in_person' OR type IN ('online', 'video') AND url IS NOT NULL),
-
-    CHECK (student_limit > 0),
-    CHECK (standalone_price is NULL OR standalone_price > 0),
+    CONSTRAINT type_and_url CHECK (type = 'in_person' OR type IN ('online', 'video') AND url IS NOT NULL),
+    CONSTRAINT positive_student_limit CHECK (student_limit > 0),
+    CONSTRAINT positive_standalone_price CHECK (standalone_price is NULL OR standalone_price > 0),
 )
 
 CREATE TABLE StudentMeeting
@@ -305,6 +285,17 @@ CREATE TABLE StudentMeeting
     student_id   int NOT NULL,
     meeting_id   int NOT NULL,
     payment_date date,
+
+    PRIMARY KEY (student_id, meeting_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
+    FOREIGN KEY (meeting_id) REFERENCES Meeting (id) ON DELETE CASCADE,
+)
+
+CREATE TABLE StudentMeetingAttendance
+(
+    student_id int NOT NULL,
+    meeting_id int NOT NULL,
 
     PRIMARY KEY (student_id, meeting_id),
 
@@ -325,9 +316,9 @@ CREATE TABLE Basket
 
     FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
 
-    CHECK (state IN ('open', 'pending_payment', 'success_payment', 'failed_payment')),
-    CHECK (state = 'open' OR payment_url IS NOT NULL ),
-    CHECK (payment_date IS NULL OR payment_date >= create_date),
+    CONSTRAINT state_enum CHECK (state IN ('open', 'pending_payment', 'success_payment', 'failed_payment')),
+    CONSTRAINT state_and_payment_url CHECK (state = 'open' OR payment_url IS NOT NULL ),
+    CONSTRAINT payment_date_greaterEq_create_date CHECK (payment_date IS NULL OR payment_date >= create_date),
 )
 
 CREATE TABLE BasketItem
@@ -341,12 +332,12 @@ CREATE TABLE BasketItem
     UNIQUE (basket_id, course_id, meeting_id, studies_id, webinar_id),
 
     FOREIGN KEY (basket_id) REFERENCES Basket (id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE CASCADE,
-    FOREIGN KEY (meeting_id) REFERENCES Meeting (id) ON DELETE CASCADE,
-    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE CASCADE,
-    FOREIGN KEY (webinar_id) REFERENCES Webinar (id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES Course (id),
+    FOREIGN KEY (meeting_id) REFERENCES Meeting (id),
+    FOREIGN KEY (studies_id) REFERENCES Studies (id),
+    FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
 
-    CHECK (
+    CONSTRAINT polymorphism CHECK (
         (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NOT NULL) OR
         (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NOT NULL AND webinar_id IS NULL) OR
         (course_id IS NULL AND meeting_id IS NOT NULL AND studies_id IS NULL AND webinar_id IS NULL) OR

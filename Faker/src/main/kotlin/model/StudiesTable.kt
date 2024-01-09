@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
 
 object StudiesTable : IntIdTable("Studies") {
-  val syllabus = varchar("syllabus", 1000).nullable()
+  val syllabus = varchar("syllabus", 5000).nullable()
   val price = float("price")
   val advancePrice = float("advance_price")
   val language = varchar("language", 50).default("Polish")
@@ -39,5 +39,5 @@ object StudentSemesters : Table("StudentSemester") {
   val semesterId = integer("semester_id").references(Semesters.id, onDelete = ReferenceOption.CASCADE)
   val paymentDate = date("payment_date")
 
-  override val primaryKey: PrimaryKey = PrimaryKey(StudentSemesters.studentId, StudentSemesters.semesterId)
+  override val primaryKey: PrimaryKey = PrimaryKey(studentId, semesterId)
 }
