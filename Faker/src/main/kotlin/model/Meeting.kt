@@ -1,14 +1,15 @@
 package model
 
-import io.github.serpro69.kfaker.Faker
 import model.MeetingType.*
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.javatime.date
-import java.util.*
+import org.jetbrains.exposed.sql.or
 
 object Meetings : IntIdTable("Meeting") {
   val moduleId = integer("module_id").references(Modules.id, onDelete = ReferenceOption.NO_ACTION).nullable()
@@ -20,7 +21,8 @@ object Meetings : IntIdTable("Meeting") {
   val translatorId =
     integer("translator_id").references(Translators.id, onDelete = ReferenceOption.SET_NULL).nullable()
   val substitutingTeacherId =
-    integer("substituting_teacher_id").references(Teachers.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    integer("substituting_teacher_id").references(Teachers.id, onDelete = ReferenceOption.NO_ACTION).nullable()
+      .default(null)
   val studentLimit = integer("student_limit")
 
   val typeCheck = check { (moduleId neq null and (subjectId eq null)) or (moduleId eq null and (subjectId neq null)) }
@@ -44,14 +46,12 @@ class Meeting(id: EntityID<Int>) : IntEntity(id) {
   var students by Student via StudentMeetings
 }
 
-object StudentMeetings : IntIdTable("StudentMeeting") {
+object StudentMeetings : Table("StudentMeeting") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val meetingId = integer("meeting_id").references(Meetings.id, onDelete = ReferenceOption.CASCADE)
   val paymentDate = date("payment_date").nullable()
 
-  init {
-    index(true, studentId, meetingId)
-  }
+  override val primaryKey: PrimaryKey = PrimaryKey(studentId, meetingId)
 }
 
 

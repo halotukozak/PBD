@@ -1,11 +1,9 @@
 package model
 
-import io.github.serpro69.kfaker.Faker
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.batchInsert
 
 object Teachers : IntIdTable("Teacher") {
   val name = varchar("name", 50)

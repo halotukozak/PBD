@@ -113,8 +113,8 @@ CREATE TABLE StudentCourse
 
     PRIMARY KEY (student_id, course_id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE NO ACTION,
-    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE NO ACTION,
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE CASCADE,
 
     CHECK (advance_payment_date <= full_payment_date),
     CHECK (full_payment_date <= credit_date),
@@ -140,7 +140,7 @@ CREATE TABLE Module
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE NO ACTION,
+    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE CASCADE,
     FOREIGN KEY (room_id) REFERENCES Room (id) ON DELETE NO ACTION,
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
@@ -149,14 +149,6 @@ CREATE TABLE Module
         type = 'in_person' AND room_id IS NOT NULL OR
         type IN ('online_sync', 'online_async') AND room_id IS NULL
         ),
-)
-
-CREATE TABLE StudentMeetingAttendance
-(
-    student_id int NOT NULL,
-    meeting_id int NOT NULL,
-
-    PRIMARY KEY (student_id, meeting_id),
 )
 
 CREATE TABLE Studies
@@ -224,12 +216,12 @@ CREATE TABLE Subject
     id          int          NOT NULL IDENTITY (1, 1),
     name        varchar(200) NOT NULL,
     semester_id int          NOT NULL,
-    teacher_id  int          NOT NULL,
+    teacher_id  int,
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (semester_id) REFERENCES Semester (id) ON DELETE NO ACTION,
-    FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
+    FOREIGN KEY (semester_id) REFERENCES Semester (id) ON DELETE CASCADE,
+    FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE SET NULL,
 )
 
 CREATE TABLE Internship
@@ -240,34 +232,23 @@ CREATE TABLE Internship
 
     PRIMARY KEY (id),
 
-    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE NO ACTION,
+    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE CASCADE,
 )
 
-CREATE TABLE InternshipAttendance
+CREATE TABLE InternshipStudent
 (
     student_id    int           NOT NULL,
     internship_id int           NOT NULL,
     attended_days int DEFAULT 0 NOT NULL,
+    exam_result   int           NOT NULL,
 
     PRIMARY KEY (student_id, internship_id),
 
-    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE NO ACTION,
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
+    FOREIGN KEY (internship_id) REFERENCES Internship (id) ON DELETE CASCADE,
 
     CHECK (attended_days >= 0),
-)
-
-CREATE TABLE InternshipExam
-(
-    student_id    int NOT NULL,
-    internship_id int NOT NULL,
-    result        int NOT NULL,
-
-    PRIMARY KEY (student_id, internship_id),
-
-    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE NO ACTION,
-    FOREIGN KEY (internship_id) REFERENCES Internship (id) ON DELETE NO ACTION,
-
-    CHECK (result >= 0 AND result <= 100),
+    CHECK (exam_result >= 0 AND exam_result <= 100),
 )
 
 CREATE TABLE Meeting
@@ -280,7 +261,7 @@ CREATE TABLE Meeting
     type                    varchar(10) NOT NULL,
     standalone_price        float,
     translator_id           int,
-    substituting_teacher_id int,
+    substituting_teacher_id int DEFAULT NULL,
     student_limit           int         NOT NULL,
 
     PRIMARY KEY (id),
@@ -288,14 +269,13 @@ CREATE TABLE Meeting
     FOREIGN KEY (module_id) REFERENCES Module (id) ON DELETE NO ACTION,
     FOREIGN KEY (subject_id) REFERENCES Subject (id) ON DELETE NO ACTION,
     FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
-    FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id) ON DELETE SET NULL,
+    FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
     CHECK (
         module_id IS NOT NULL AND subject_id IS NULL OR
         module_id IS NULL AND subject_id IS NOT NULL
         ),
     CHECK (type = 'in_person' OR type IN ('online', 'video') AND url IS NOT NULL),
-
     CHECK (student_limit > 0),
     CHECK (standalone_price is NULL OR standalone_price > 0),
 )
@@ -305,6 +285,17 @@ CREATE TABLE StudentMeeting
     student_id   int NOT NULL,
     meeting_id   int NOT NULL,
     payment_date date,
+
+    PRIMARY KEY (student_id, meeting_id),
+
+    FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
+    FOREIGN KEY (meeting_id) REFERENCES Meeting (id) ON DELETE CASCADE,
+)
+
+CREATE TABLE StudentMeetingAttendance
+(
+    student_id int NOT NULL,
+    meeting_id int NOT NULL,
 
     PRIMARY KEY (student_id, meeting_id),
 
@@ -341,10 +332,10 @@ CREATE TABLE BasketItem
     UNIQUE (basket_id, course_id, meeting_id, studies_id, webinar_id),
 
     FOREIGN KEY (basket_id) REFERENCES Basket (id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES Course (id) ON DELETE CASCADE,
-    FOREIGN KEY (meeting_id) REFERENCES Meeting (id) ON DELETE CASCADE,
-    FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE CASCADE,
-    FOREIGN KEY (webinar_id) REFERENCES Webinar (id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES Course (id),
+    FOREIGN KEY (meeting_id) REFERENCES Meeting (id),
+    FOREIGN KEY (studies_id) REFERENCES Studies (id),
+    FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
 
     CHECK (
         (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NOT NULL) OR
