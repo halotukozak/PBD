@@ -9,8 +9,8 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
 
 object Courses : IntIdTable("Course") {
-  val price = float("price")
-  val advancePrice = float("advance_price")
+  val price = integer("price")
+  val advancePrice = integer("advance_price")
   val subject = varchar("subject", 100)
   val language = varchar("language", 50).default("Polish")
   val studentLimit = integer("student_limit")

@@ -4,12 +4,8 @@ import com.typesafe.config.ConfigFactory
 import io.github.serpro69.kfaker.faker
 import model.*
 import mu.KotlinLogging
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.deleteAll
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.slf4j.Logger
 
 suspend fun main() {
   val logger = KotlinLogging.logger("Main")
@@ -63,42 +59,26 @@ suspend fun main() {
     StudentMeetingAttendance,
     StudentWebinars,
   ).let {
-    SchemaUtils.sortTablesByReferences(it)
+    transaction { SchemaUtils.sortTablesByReferences(it) }.asReversed()
   }
 
   logger.info { "Tables initialized" }
 
-  transaction {
-    val names = tables.map { it.tableName }.toSet()
-    val dbNames = SchemaUtils.listTables().map { it.removePrefix("dbo.") }.toSet()
-    require(names == dbNames) {
-      "Missing tables in database: ${dbNames - names}"
-      "Missing tables in code: ${names - dbNames}"
-    }
-    require(!SchemaUtils.checkCycle(*tables.toTypedArray()))
+  val names = tables.map { it.tableName }.toSet()
+  val dbNames = SchemaUtils::listTables.now().map { it.removePrefix("dbo.") }.toSet()
+
+  require(names == dbNames) {
+    "Missing tables in database: ${dbNames - names}\nMissing tables in code: ${names - dbNames}"
   }
+  require(!SchemaUtils.checkCycle(*tables.toTypedArray()))
 
   logger.info { "Tables checked" }
 
-  transaction {
-    retry(3, logger) {
-      require(tables.fold(true) { success, it ->
-        try {
-          it.deleteAll()
-          success
-        } catch (e: Exception) {
-          logger.warn(e.message)
-          false
-        }
-      })
-    }
-  }
+  transaction { tables.forEach(Table::deleteAll) }
 
-  transaction {
-    tables.forEach {
-      require(it.selectAll().empty()) {
-        "Table ${it.tableName} is not empty"
-      }
+  tables.forEach {
+    require({ it.selectAll().empty() }.now()) {
+      "Table ${it.tableName} is not empty"
     }
   }
 
@@ -161,19 +141,6 @@ suspend fun main() {
   logger.info { "$studentWebinars StudentWebinars inserted" }
   val studentStudies = insertManager.insertStudentStudies(studiesIds, studentIds)
   logger.info { "$studentStudies StudentStudies inserted" }
-  val studentSemesters = insertManager.insertStudentSemesters(semesterIds, studentIds)
-  logger.info { "$studentSemesters StudentSemesters inserted" }
 }
 
-fun <T> retry(
-  times: Int = 3, logger: Logger, block: () -> T
-): T? {
-  repeat(times - 1) {
-    try {
-      return block()
-    } catch (e: Exception) {
-      logger.error(e.message)
-    }
-  }
-  return block()
-}
+fun <T> (() -> T).now(): T = transaction { this@now() }

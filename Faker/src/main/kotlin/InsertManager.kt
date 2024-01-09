@@ -3,16 +3,14 @@ package org.oolab.model
 import io.github.serpro69.kfaker.Faker
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import model.*
 import mu.KotlinLogging
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
+@Suppress("LocalVariableName")
 class InsertManager(private val faker: Faker) {
   private val logger = KotlinLogging.logger("InsertManager")
 
@@ -32,15 +30,14 @@ class InsertManager(private val faker: Faker) {
     safeTransaction {
       val withModule = faker.random.nextBoolean()
       Meetings.insertAndGetId {
-        it[moduleId] = if (withModule) moduleIds.random() else null
-        it[subjectId] = if (withModule) null else subjectIds.random()
+        if (withModule) it[moduleId] = moduleIds.random() else it[subjectId] = subjectIds.random()
         it[url] = faker.internet.url(domain = faker.pokemon.names(), content = faker.yoda.quotes())
         it[date] = faker.dateTime()
         it[type] = faker.random.nextEnum<MeetingType>()
-        it[standalonePrice] = faker.price()
-        it[translatorId] = if (faker.random.nextBoolean()) translatorIds.random() else null
-        it[substitutingTeacherId] = if (faker.random.nextBoolean()) teacherIds.random() else null
-        it[studentLimit] = faker.random.nextInt(1, 20)
+        it[standalonePrice] = faker.random.nextInt(20_00..300_00)
+        faker.random { it[translatorId] = translatorIds.random() }
+        faker.random { it[substitutingTeacherId] = teacherIds.random() }
+        it[studentLimit] = faker.random.nextInt(1..20)
       }
     }
   }.mapNotNull { it?.value }
@@ -70,15 +67,16 @@ class InsertManager(private val faker: Faker) {
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
+      val _price = faker.random.nextInt(200_00..5000_00)
       Course.new {
-        price = faker.price()
-        advancePrice = faker.price()
+        price = _price
+        advancePrice = faker.random.nextInt(0.._price / 3)
         subject = faker.commerce.productName()
-        language = faker.nation.language()
-        studentLimit = faker.random.nextInt(1, 5)
+        faker.random { language = faker.nation.language() }
+        studentLimit = faker.random.nextInt(1..5)
       }
-    }
-  }.mapNotNull { it?.id?.value }
+    }!!
+  }.map { it.id.value }
 
   suspend fun insertRooms(
     n: Int = 10,
@@ -86,10 +84,10 @@ class InsertManager(private val faker: Faker) {
     safeTransaction {
       Room.new {
         number = faker.string.numerify("##.##")
-        building = faker.address.buildingNumber()
+        building = faker.string.bothify("?##", true)
       }
-    }
-  }.mapNotNull { it?.id?.value }
+    }!!
+  }.map { it.id.value }
 
   suspend fun insertBaskets(
     studentIds: List<Int>,
@@ -98,18 +96,22 @@ class InsertManager(private val faker: Faker) {
     safeTransaction {
       val isOpen = faker.random.nextBoolean()
       val createDat = faker.date()
-      Baskets.insertAndGetId {
-        it[studentId] = studentIds.random()
-        it[paymentUrl] = if (isOpen) null else faker.internet.url(
-          domain = faker.minecraft.mobs(),
-          content = faker.harryPotter.quotes(),
-        )
-        it[state] = if (isOpen) BasketState.open else BasketState.entries.filter { it != BasketState.open }.random()
-        it[createDate] = createDat
-        it[paymentDate] = if (faker.random.nextBoolean()) faker.date(createDat) else null
+      studentIds.takeRandom(n).map { _studentId ->
+        Baskets.insertAndGetId {
+          it[studentId] = _studentId
+          if (!isOpen) it[paymentUrl] = faker.internet.url(
+            domain = faker.minecraft.mobs(),
+            content = faker.harryPotter.quotes(),
+          )
+          it[state] =
+            if (isOpen) BasketState.open
+            else BasketState.entries.filter { state -> state != BasketState.open }.random()
+          it[createDate] = createDat
+          faker.random { it[paymentDate] = faker.date(createDat) }
+        }
       }
-    }
-  }.mapNotNull { it?.value }
+    }!!
+  }.flatten().map { it.value }
 
   suspend fun insertInternships(
     studiesIds: List<Int>,
@@ -120,27 +122,29 @@ class InsertManager(private val faker: Faker) {
         it[studiesId] = studiesIds.random()
         it[date] = faker.date()
       }
-    }
-  }.mapNotNull { it?.value }
+    }!!
+  }.map { it.value }
 
   suspend fun insertSubjects(
     semesterIds: List<Int>,
     teacherIds: List<Int>,
-    n: Int = 10,
-  ): List<Int> = List(n) {
-    safeTransaction {
-      Subjects.insertAndGetId {
-        it[name] = faker.science.branch.formalBasic()
-        it[semesterId] = semesterIds.random()
-        it[teacherId] = teacherIds.random()
-      }
+    n: IntRange = 4..10,
+  ): List<Int> = semesterIds.flatMap { _semesterId ->
+    List(faker.random.nextInt(n)) {
+      safeTransaction {
+        Subjects.insertAndGetId {
+          it[name] = faker.subject()
+          it[semesterId] = _semesterId
+          it[teacherId] = teacherIds.random()
+        }
+      }!!
     }
-  }.mapNotNull { it?.value }
+  }.map { it.value }
 
   suspend fun insertSemesters(
     studiesIds: List<Int>,
-  ): List<Int> = studiesIds.flatMap { studiesId ->
-    val numberOfSemesters = faker.random.nextInt(1, 12)
+  ): List<Int> = studiesIds.flatMap { id ->
+    val numberOfSemesters = faker.random.nextInt(1..12)
     generateSequence(faker.date().let { it to faker.date(it) }) { (_, endDate) ->
       endDate.plusDays(1)?.let { it to it.plusMonths(6) }
     }
@@ -151,15 +155,14 @@ class InsertManager(private val faker: Faker) {
         safeTransaction {
           Semesters.insertAndGetId {
             it[number] = i + 1
-            it[this.studiesId] = studiesId
+            it[studiesId] = id
             it[schedule] =
               faker.internet.url(domain = faker.coffee.blendName(), content = faker.spongebob.quotes()).take(50)
             it[startDate] = dates.first
             it[endDate] = dates.second
           }
-        }
+        }!!.value
       }
-      .mapNotNull { it?.value }
       .toList()
   }
 
@@ -167,13 +170,14 @@ class InsertManager(private val faker: Faker) {
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
+      val _price = faker.random.nextInt(2000_00..50000_00)
       Studies.new {
         syllabus =
-          List(faker.random.nextInt(5, 30)) { faker.bible.quote() }.reduce { s, other -> "$s $other" }.take(5000)
-        price = faker.price()
-        advancePrice = faker.price()
-        language = faker.nation.language()
-        studentLimit = faker.random.nextInt(1, 5)
+          List(faker.random.nextInt(5..30)) { faker.bible.quote() }.reduce { s, other -> "$s $other" }.take(5000)
+        price = _price
+        advancePrice = faker.random.nextInt(0.._price / 3)
+        faker.random { language = faker.nation.language() }
+        studentLimit = faker.random.nextInt(1..5)
       }
     }
   }.mapNotNull { it?.id?.value }
@@ -185,11 +189,11 @@ class InsertManager(private val faker: Faker) {
   ): List<Int> = List(n) {
     safeTransaction {
       Webinars.insertAndGetId {
-        it[price] = faker.price()
+        it[price] = faker.random.nextInt(0..300_00)
         it[date] = faker.dateTime()
         it[url] = faker.internet.url(domain = faker.witcher.potions(), content = faker.starWars.quote())
-        it[language] = faker.nation.language()
-        it[translatorId] = if (faker.random.nextBoolean()) translatorIds.random() else null
+        faker.random { it[language] = faker.nation.language() }
+        faker.random { it[translatorId] = translatorIds.random() }
         it[teacherId] = teacherIds.random()
       }
     }
@@ -199,14 +203,14 @@ class InsertManager(private val faker: Faker) {
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
-      val name = faker.name
+      val person = faker.name
       Translator.new {
-        this.language = faker.nation.language()
-        this.name = name.firstName()
-        this.surname = name.lastName()
-        this.address = faker.address.fullAddress()
-        this.email = faker.internet.email(name)
-        this.phoneNumber = faker.phoneNumber.phoneNumber()
+        language = faker.nation.language()
+        name = person.firstName()
+        surname = person.lastName()
+        address = faker.address.fullAddress()
+        email = faker.internet.email(person)
+        phoneNumber = faker.phoneNumber.cellPhone.number()
       }
     }
   }.mapNotNull { it?.id?.value }
@@ -215,13 +219,13 @@ class InsertManager(private val faker: Faker) {
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
-      val (name, surname) = faker.name.let { it.name() to it.lastName() }
+      val person = faker.name
       Teacher.new {
-        this.name = name
-        this.surname = surname
-        this.address = faker.address.fullAddress()
-        this.email = faker.internet.email(name)
-        this.phoneNumber = faker.phoneNumber.phoneNumber()
+        name = person.firstName()
+        surname = person.lastName()
+        address = faker.address.fullAddress()
+        email = faker.internet.email(person)
+        phoneNumber = faker.phoneNumber.cellPhone.number()
       }
     }
   }.mapNotNull { it?.id?.value }
@@ -230,13 +234,13 @@ class InsertManager(private val faker: Faker) {
     n: Int = 10,
   ): List<Int> = List(n) {
     safeTransaction {
-      val name = faker.name
+      val person = faker.name
       Student.new {
-        this.name = name.firstName()
-        this.surname = name.lastName()
-        this.address = faker.address.fullAddress()
-        this.email = faker.internet.email(name)
-        this.phoneNumber = faker.phoneNumber.phoneNumber()
+        name = person.firstName()
+        surname = person.lastName()
+        address = faker.address.fullAddress()
+        email = faker.internet.email(person)
+        phoneNumber = faker.phoneNumber.cellPhone.number()
       }
     }
   }.mapNotNull { it?.id?.value }
@@ -247,12 +251,15 @@ class InsertManager(private val faker: Faker) {
     "internship_completion_threshold_in_percent" to 80,
     "internship_length_in_days" to 14,
     "internship_completion_threshold_in_percent" to 100,
-  ).mapNotNull { (name, value) ->
-    safeTransaction {
-      Parameters.insert {
-        it[this.name] = name
-        it[this.value] = value.toString()
-      }
+  ).flatMap { (_name, _value) ->
+    List(faker.random.nextInt(1..5)) {
+      safeTransaction {
+        Parameters.insert {
+          it[name] = _name
+          it[value] = _value.toString()
+          it[date] = faker.date()
+        }
+      }!!
     }
   }.count()
 
@@ -263,159 +270,160 @@ class InsertManager(private val faker: Faker) {
     meetingIds: List<Int>,
     studiesIds: List<Int>,
     webinarIds: List<Int>,
-    max: Int = 10,
-  ): Int = basketIds.flatMap { basket ->
-    List(faker.random.nextInt(max)) {
-      val content = faker.random.nextInt(0, 3)
-      safeTransaction {
-        BasketItems.insert {
-          it[basketId] = basket
-          it[courseId] = if (content == 0) courseIds.random() else null
-          it[meetingId] = if (content == 1) meetingIds.random() else null
-          it[studiesId] = if (content == 2) studiesIds.random() else null
-          it[webinarId] = if (content == 3) webinarIds.random() else null
+    n: IntRange = 2..12,
+  ) = basketIds.flatMap { basket ->
+    listOf(
+      courseIds to BasketItems.courseId,
+      meetingIds to BasketItems.meetingId,
+      studiesIds to BasketItems.studiesId,
+      webinarIds to BasketItems.webinarId,
+    ).flatMap { (ids, column) ->
+      ids.takeRandom(n.last / 4).mapNotNull { id ->
+        safeTransaction {
+          BasketItems.insert {
+            it[basketId] = basket
+            it[column] = id
+          }
         }
       }
-    }.filterNotNull()
+    }
   }.count()
 
   suspend fun insertInternshipStudents(
     internshipIds: List<Int>,
     studentIds: List<Int>,
-    max: Int = 10,
-  ): Int = internshipIds.flatMap { internship ->
-    List(faker.random.nextInt(max)) {
+    n: IntRange = 5..10,
+  ): Int = internshipIds.flatMap { _internshipId ->
+    studentIds.takeRandom(faker.random.nextInt(n)).mapNotNull { id ->
       safeTransaction {
         InternshipStudent.insert {
-          it[internshipId] = internship
-          it[studentId] = studentIds.random()
-          it[examResult] = faker.random.nextInt(0, 100)
+          it[internshipId] = _internshipId
+          it[studentId] = id
+          it[attendedDays] = faker.random.nextInt(0..14)
+          it[examResult] = faker.random.nextInt(0..100)
         }
       }
-    }.filterNotNull()
+    }
   }.count()
 
   suspend fun insertStudentCourses(
     courseIds: List<Int>,
     studentIds: List<Int>,
-    max: Int = 10,
-  ): Int = studentIds.flatMap { student ->
-    List(faker.random.nextInt(max)) {
-      val advancePaymentDate = faker.date()
-      val fullPaymentDate = faker.date(advancePaymentDate)
-      val creditDate = faker.date(fullPaymentDate)
-      val certificatePostDate = faker.date(creditDate)
+    n: IntRange = 3..10,
+  ): Int = studentIds.flatMap { _studentId ->
+    courseIds.takeRandom(faker.random.nextInt(n)).mapNotNull { id ->
+      val _advancePaymentDate = faker.date()
+      val _fullPaymentDate = faker.date(_advancePaymentDate)
+      val _creditDate = faker.date(_fullPaymentDate)
+      val _certificatePostDate = faker.date(_creditDate)
 
       safeTransaction {
         StudentCourses.insert {
-          it[this.studentId] = student
-          it[this.courseId] = courseIds.random()
-          it[this.advancePaymentDate] = advancePaymentDate
-          it[this.fullPaymentDate] = fullPaymentDate
-          it[this.creditDate] = creditDate
-          it[this.certificatePostDate] = certificatePostDate
+          it[studentId] = _studentId
+          it[courseId] = id
+          it[advancePaymentDate] = _advancePaymentDate
+          it[fullPaymentDate] = _fullPaymentDate
+          it[creditDate] = _creditDate
+          it[certificatePostDate] = _certificatePostDate
         }
       }
-    }.filterNotNull()
+    }
   }.count()
+
 
   suspend fun insertStudentMeetings(
     meetingIds: List<Int>,
     studentIds: List<Int>,
-    max: Int = 10,
-  ): Int = studentIds.flatMap { student ->
-    List(faker.random.nextInt(max)) {
+    n: IntRange = 3..10,
+  ): Int = studentIds.flatMap { _studentId ->
+    val meetings = meetingIds.takeRandom(faker.random.nextInt(n))
+    meetings.mapNotNull { id ->
       safeTransaction {
         StudentMeetings.insert {
-          it[studentId] = student
-          it[meetingId] = meetingIds.random()
+          it[studentId] = _studentId
+          it[meetingId] = id
           it[paymentDate] = faker.date()
         }
       }
-    }.filterNotNull()
+    }
   }.count()
 
   suspend fun insertStudentMeetingAttendance(
     meetingIds: List<Int>,
     studentIds: List<Int>,
-    max: Int = 10,
-  ): Int = studentIds.flatMap { student ->
-    List(faker.random.nextInt(max)) {
+    n: IntRange = 3..10,
+  ): Int = studentIds.flatMap { _studentId ->
+    meetingIds.takeRandom(faker.random.nextInt(n)).mapNotNull { id ->
       safeTransaction {
         StudentMeetingAttendance.insert {
-          it[studentId] = student
-          it[meetingId] = meetingIds.random()
+          it[studentId] = _studentId
+          it[meetingId] = id
         }
       }
-    }.filterNotNull()
+    }
   }.count()
 
   suspend fun insertStudentWebinars(
     webinarIds: List<Int>,
     studentIds: List<Int>,
-    max: Int = 10,
-  ): Int = studentIds.flatMap { student ->
-    List(faker.random.nextInt(max)) {
+    n: IntRange = 3..10,
+  ): Int = studentIds.flatMap { _studentId ->
+    webinarIds.takeRandom(faker.random.nextInt(n)).map { id ->
       safeTransaction {
         StudentWebinars.insert {
-          it[studentId] = student
-          it[webinarId] = webinarIds.random()
+          it[studentId] = _studentId
+          it[webinarId] = id
           it[paymentDate] = faker.date()
         }
-      }
-    }.filterNotNull()
+      }!!
+    }
   }.count()
 
   suspend fun insertStudentStudies(
     studiesIds: List<Int>,
     studentIds: List<Int>,
-    max: Int = 10,
-  ): Int = studentIds.flatMap { studentId ->
-    val registrationPaymentDate = faker.date()
-    List(faker.random.nextInt(max)) {
+    n: IntRange = 0..2,
+  ): Int = studentIds.flatMap { _studentId ->
+    val _registrationPaymentDate = faker.date()
+    studiesIds.takeRandom(faker.random.nextInt(n)).mapNotNull { _studiesId ->
       safeTransaction {
         StudentStudies.insert {
-          it[this.studentId] = studentId
-          it[this.studiesId] = studiesIds.random()
-          it[this.registrationPaymentDate] = registrationPaymentDate
-          it[this.certificatePostDate] = if (faker.random.nextBoolean()) faker.date(registrationPaymentDate) else null
+          it[studentId] = _studentId
+          it[studiesId] = _studiesId
+          it[registrationPaymentDate] = _registrationPaymentDate
+          faker.random { it[certificatePostDate] = faker.date(_registrationPaymentDate) }
+        }.also {
+          val semesters = Semester.find { Semesters.studiesId eq _studiesId }.map { it.id.value }
+          semesters
+            .take(faker.random.nextInt(semesters.indices))
+            .map { _semesterId ->
+              StudentSemesters.insert {
+                it[studentId] = _studentId
+                it[semesterId] = _semesterId
+                it[paymentDate] = faker.date()
+              }
+            }
         }
       }
-    }.filterNotNull()
+    }
   }.count()
 
-  suspend fun insertStudentSemesters(
-    semesterIds: List<Int>,
-    studentIds: List<Int>,
-    max: Int = 10,
-  ): Int = studentIds.flatMap { student ->
-    List(faker.random.nextInt(max)) {
-      safeTransaction {
-        StudentSemesters.insert {
-          it[studentId] = student
-          it[semesterId] = semesterIds.random()
-          it[paymentDate] = faker.date()
-        }
-      }
-    }.filterNotNull()
-  }.count()
-
-
-  private suspend fun <T> safeTransaction(f: () -> T): T? = try {
+  private suspend fun <T> safeTransaction(f: () -> T) =
     newSuspendedTransaction {
-      addLogger(StdOutSqlLogger)
-      f()
+      try {
+        f()
+      } catch (e: Exception) {
+        logger.warn(e.message)
+        if (listOf(
+            "Violation of UNIQUE KEY constraint",
+            "Violation of PRIMARY KEY constraint",
+          ).any { it in e.message.orEmpty() }
+        ) null
+        else {
+          null
+        }
+      }
     }
-  } catch (e: Exception) {
-    logger.warn(e.message)
-    if (listOf(
-        "Violation of UNIQUE KEY constraint",
-        "Violation of PRIMARY KEY constraint",
-      ).any { it in e.message.orEmpty() }
-    ) null
-    else {
-      null
-    }
-  }
 
+  private fun <T> List<T>.takeRandom(n: Int): List<T> = generateSequence(::random).distinct().take(n).toList()
 }

@@ -20,7 +20,6 @@ class Internship(id: EntityID<Int>) : IntEntity(id) {
   var date by Internships.date
 
   var students by Student via InternshipStudent
-  var exams by Student via InternshipStudent
 }
 
 object InternshipStudent : Table("InternshipStudent") {
