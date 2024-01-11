@@ -59,7 +59,7 @@ CREATE TABLE Translator
 CREATE TABLE Webinar
 (
     id            int                          NOT NULL IDENTITY (1, 1),
-    price         float       DEFAULT 0.0      NOT NULL,
+    price         int         DEFAULT 0        NOT NULL, --in Polish grosz
     date          date                         NOT NULL,
     url           varchar(200)                 NOT NULL UNIQUE,
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
@@ -89,8 +89,8 @@ CREATE TABLE StudentWebinar
 CREATE TABLE Course
 (
     id            int                          NOT NULL IDENTITY (1, 1),
-    price         float                        NOT NULL,
-    advance_price float                        NOT NULL,
+    price         int                          NOT NULL, --in Polish grosz
+    advance_price int                          NOT NULL, --in Polish grosz
     subject       varchar(100)                 NOT NULL,
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
     student_limit int                          NOT NULL,
@@ -155,8 +155,8 @@ CREATE TABLE Studies
 (
     id            int                          NOT NULL IDENTITY (1, 1),
     syllabus      varchar(5000),
-    price         float                        NOT NULL,
-    advance_price float                        NOT NULL,
+    price         int                          NOT NULL, --in Polish grosz
+    advance_price int                          NOT NULL, --in Polish grosz
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
     student_limit int                          NOT NULL,
 
@@ -169,12 +169,12 @@ CREATE TABLE Studies
 
 CREATE TABLE Semester
 (
-    id         int         NOT NULL IDENTITY (1, 1),
-    number     int         NOT NULL,
-    studies_id int         NOT NULL,
-    schedule   varchar(50) NOT NULL,
-    start_date date        NOT NULL,
-    end_date   date        NOT NULL,
+    id           int          NOT NULL IDENTITY (1, 1),
+    number       int          NOT NULL,
+    studies_id   int          NOT NULL,
+    schedule_url varchar(200) NOT NULL,
+    start_date   date         NOT NULL,
+    end_date     date         NOT NULL,
 
     PRIMARY KEY (id),
 
@@ -259,7 +259,7 @@ CREATE TABLE Meeting
     url                     varchar(200),
     date                    date        NOT NULL,
     type                    varchar(10) NOT NULL,
-    standalone_price        float,
+    standalone_price        int, --in Polish grosz
     translator_id           int,
     substituting_teacher_id int DEFAULT NULL,
     student_limit           int         NOT NULL,
@@ -355,3 +355,4 @@ CREATE TABLE Parameter
 )
 
 GO
+

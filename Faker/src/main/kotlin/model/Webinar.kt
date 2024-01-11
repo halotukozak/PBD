@@ -10,14 +10,14 @@ import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.datetime
 
 object Webinars : IntIdTable("Webinar") {
-  val price = float("price").default(0f)
+  val price = integer("price").default(0)
   val date = datetime("date")
   val url = varchar("url", 200).uniqueIndex()
   val language = varchar("language", 50).default("Polish")
   val translatorId = integer("translator_id").references(Translators.id, onDelete = ReferenceOption.SET_NULL).nullable()
   val teacherId = integer("teacher_id").references(Teachers.id)
 
-  val priceCheck = check { price greaterEq 0f }
+  val priceCheck = check { price greaterEq 0 }
 }
 
 class Webinar(id: EntityID<Int>) : IntEntity(id) {
@@ -29,8 +29,6 @@ class Webinar(id: EntityID<Int>) : IntEntity(id) {
   var language by Webinars.language
   var translator by Translator optionalReferencedOn Webinars.translatorId
   var teacher by Teacher referencedOn Webinars.teacherId
-
-//  var students by Student via StudentWebinars
 }
 
 object StudentWebinars : Table("StudentWebinar") {

@@ -1,7 +1,7 @@
 package model
 
 import io.github.serpro69.kfaker.Faker
-import io.github.serpro69.kfaker.provider.Finance
+import io.github.serpro69.kfaker.RandomService
 import io.github.serpro69.kfaker.provider.Internet
 import io.github.serpro69.kfaker.provider.Name
 import java.time.LocalDate
@@ -32,7 +32,9 @@ fun Faker.dateTime(
   return LocalDateTime.ofEpochSecond(randomTime, 0, ZoneOffset.UTC)
 }
 
-fun Internet.url(domain: String = domain(), content: String): String = "https://${domain.slug()}/${content.slug()}".take(200)
+fun Internet.url(domain: String = domain(), path: String): String =
+  "https://${domain.slug()}/${path.slug()}".take(200)
+
 fun Internet.email(name: Name): String = with(name) {
   email(
     "${firstName()} ${lastName()}"
@@ -42,11 +44,23 @@ fun Internet.email(name: Name): String = with(name) {
   )
 }
 
-fun Finance.price(min: Float = 0f, max: Float = 1000f): Float = ThreadLocalRandom.current().nextFloat(min, max)
-
 fun String.slug() = lowercase()
   .replace("\n", " ")
   .replace("[^a-z\\d\\s]".toRegex(), " ")
   .split(" ")
   .joinToString("-")
   .replace("-+".toRegex(), "-")
+
+fun Faker.subject(): String = when (random.nextInt(0..7)) {
+  0 -> science.branch.formalBasic()
+  2 -> science.branch.formalApplied()
+  3 -> science.branch.empiricalSocialBasic()
+  4 -> science.branch.empiricalNaturalBasic()
+  5 -> science.branch.empiricalSocialApplied()
+  6 -> science.branch.empiricalNaturalApplied()
+  else -> "Introduction to" + programmingLanguage.name()
+}
+
+operator fun RandomService.invoke(f: () -> Unit) {
+  if (nextBoolean()) return f()
+}

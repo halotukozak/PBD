@@ -10,8 +10,8 @@ import org.jetbrains.exposed.sql.javatime.date
 
 object StudiesTable : IntIdTable("Studies") {
   val syllabus = varchar("syllabus", 5000).nullable()
-  val price = float("price")
-  val advancePrice = float("advance_price")
+  val price = integer("price")
+  val advancePrice = integer("advance_price")
   val language = varchar("language", 50).default("Polish")
   val studentLimit = integer("student_limit")
 
@@ -28,10 +28,6 @@ class Studies(id: EntityID<Int>) : IntEntity(id) {
   var advancePrice by StudiesTable.advancePrice
   var language by StudiesTable.language
   var studentLimit by StudiesTable.studentLimit
-//
-//  var students by Student via StudentStudies
-//  var internships by Internship via Internships
-//  var semesters by Semester via StudentSemesters
 }
 
 object StudentSemesters : Table("StudentSemester") {

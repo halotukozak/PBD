@@ -18,7 +18,7 @@ object Meetings : IntIdTable("Meeting") {
   val url = varchar("url", 200).nullable()
   val date = datetime("date")
   val type = enumerationByName<MeetingType>("type", 10)
-  val standalonePrice = float("standalone_price").nullable()
+  val standalonePrice = integer("standalone_price").nullable()
   val translatorId =
     integer("translator_id").references(Translators.id, onDelete = ReferenceOption.SET_NULL).nullable()
   val substitutingTeacherId =

@@ -25,11 +25,6 @@ class Student(id: EntityID<Int>) : IntEntity(id) {
   var email by Students.email
   var phoneNumber by Students.phoneNumber
 
-//  var courses by Course via StudentCourses
-//  var internships by Internship via InternshipAttendances
-//  var studies by Studies via StudentStudies
-//  var webinars by Webinar via StudentWebinars
-//  var baskets by Basket via BasketItems
 }
 
 object StudentStudies : Table("StudentStudies") {
