@@ -246,11 +246,11 @@ class InsertManager(private val faker: Faker) {
   }.mapNotNull { it?.id?.value }
 
   suspend fun insertParameters(): Int = listOf(
-    "availability_period_in_days" to 30,
-    "module_completion_threshold_in_percent" to 80,
-    "internship_completion_threshold_in_percent" to 80,
-    "internship_length_in_days" to 14,
-    "internship_completion_threshold_in_percent" to 100,
+    "availability_period" to 30,
+    "module_completion_threshold" to 80,
+    "internship_completion_threshold" to 80,
+    "internship_length" to 14,
+    "internship_completion_threshold" to 100,
   ).flatMap { (_name, _value) ->
     List(faker.random.nextInt(1..5)) {
       safeTransaction {
