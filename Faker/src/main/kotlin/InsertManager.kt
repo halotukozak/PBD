@@ -32,7 +32,7 @@ class InsertManager(private val faker: Faker) {
       val withModule = faker.random.nextBoolean()
       Meetings.insertAndGetId {
         if (withModule) it[moduleId] = moduleIds.random() else it[subjectId] = subjectIds.random()
-        it[url] = faker.internet.url(domain = faker.pokemon.names(), content = faker.yoda.quotes())
+        it[url] = faker.internet.url(domain = faker.pokemon.names(), path = faker.yoda.quotes())
         it[date] = faker.dateTime()
         it[type] = faker.random.nextEnum<MeetingType>()
         it[standalonePrice] = faker.random.nextInt(20_00..300_00)
@@ -102,7 +102,7 @@ class InsertManager(private val faker: Faker) {
           it[studentId] = _studentId
           if (!isOpen) it[paymentUrl] = faker.internet.url(
             domain = faker.minecraft.mobs(),
-            content = faker.harryPotter.quotes(),
+            path = faker.harryPotter.quotes(),
           )
           it[state] =
             if (isOpen) BasketState.open
@@ -158,7 +158,7 @@ class InsertManager(private val faker: Faker) {
             it[number] = i + 1
             it[studiesId] = id
             it[schedule] =
-              faker.internet.url(domain = faker.coffee.blendName(), content = faker.spongebob.quotes()).take(50)
+              faker.internet.url(domain = faker.coffee.blendName(), path = faker.spongebob.quotes()).take(50)
             it[startDate] = dates.first
             it[endDate] = dates.second
           }
@@ -192,7 +192,7 @@ class InsertManager(private val faker: Faker) {
       Webinars.insertAndGetId {
         it[price] = faker.random.nextInt(0..300_00)
         it[date] = faker.dateTime()
-        it[url] = faker.internet.url(domain = faker.witcher.potions(), content = faker.starWars.quote())
+        it[url] = faker.internet.url(domain = faker.witcher.potions(), path = faker.starWars.quote())
         faker.random { it[language] = faker.nation.language() }
         faker.random { it[translatorId] = translatorIds.random() }
         it[teacherId] = teacherIds.random()

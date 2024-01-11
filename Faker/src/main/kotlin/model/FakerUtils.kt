@@ -32,8 +32,8 @@ fun Faker.dateTime(
   return LocalDateTime.ofEpochSecond(randomTime, 0, ZoneOffset.UTC)
 }
 
-fun Internet.url(domain: String = domain(), content: String): String =
-  "https://${domain.slug()}/${content.slug()}".take(200)
+fun Internet.url(domain: String = domain(), path: String): String =
+  "https://${domain.slug()}/${path.slug()}".take(200)
 
 fun Internet.email(name: Name): String = with(name) {
   email(
