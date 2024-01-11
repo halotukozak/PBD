@@ -330,13 +330,13 @@ class InsertManager(private val faker: Faker) {
           it[certificatePostDate] = _certificatePostDate
         }
       }
-    }
+    }//todo(add metting here)
   }.count()
 
 
   suspend fun insertStudentMeetings(
     meetingIds: List<Int>,
-    studentIds: List<Int>,
+    studentIds: List<Int>, //nie z kursu, nie ze studioów
     n: IntRange = 3..10,
   ): Int = studentIds.flatMap { _studentId ->
     val meetings = meetingIds.takeRandom(faker.random.nextInt(n))
