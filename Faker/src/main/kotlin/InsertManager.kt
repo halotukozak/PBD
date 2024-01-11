@@ -9,6 +9,7 @@ import mu.KotlinLogging
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import java.time.LocalDateTime
 
 @Suppress("LocalVariableName")
 class InsertManager(private val faker: Faker) {
@@ -251,6 +252,8 @@ class InsertManager(private val faker: Faker) {
     "internship_completion_threshold" to 80,
     "internship_length" to 14,
     "internship_completion_threshold" to 100,
+    "custom" to "¯\\_(ツ)_/¯",
+    "some_date" to LocalDateTime.now(),
   ).flatMap { (_name, _value) ->
     List(faker.random.nextInt(1..5)) {
       safeTransaction {
