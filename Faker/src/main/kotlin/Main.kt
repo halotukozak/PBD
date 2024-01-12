@@ -1,10 +1,15 @@
 package org.oolab.model
 
+import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValue
 import io.github.serpro69.kfaker.faker
 import model.*
 import mu.KotlinLogging
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.deleteAll
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 suspend fun main() {
@@ -15,13 +20,16 @@ suspend fun main() {
 
   val config = ConfigFactory.load("application.conf")
 
+  val fakerConfig = config.getConfig("app")
+  val dbConfig = config.getConfig("database")
+
   logger.info { "Config loaded" }
 
   Database.connect(
-    url = config.getConfig("database").getString("url"),
-    driver = config.getConfig("database").getString("driver"),
-    user = config.getConfig("database").getString("user"),
-    password = config.getConfig("database").getString("password")
+    url = dbConfig.getString("url"),
+    driver = dbConfig.getString("driver"),
+    user = dbConfig.getString("user"),
+    password = dbConfig.getString("password")
   )
 
   logger.info { "Database connected" }
@@ -52,7 +60,7 @@ suspend fun main() {
     StudentSemesters,
     StudentStudies,
     Internships,
-    InternshipStudent,
+    StudentInternship,
     Parameters,
     StudentCourses,
     StudentMeetings,
@@ -74,16 +82,6 @@ suspend fun main() {
 
   logger.info { "Tables checked" }
 
-  transaction { tables.forEach(Table::deleteAll) }
-
-  tables.forEach {
-    require({ it.selectAll().empty() }.now()) {
-      "Table ${it.tableName} is not empty"
-    }
-  }
-
-  logger.info { "Tables cleared" }
-
   transaction {
     SchemaUtils.statementsRequiredToActualizeScheme(*tables.toTypedArray())
   }.let {
@@ -94,53 +92,67 @@ suspend fun main() {
 
   logger.info { "Schemas checked" }
 
-  val insertManager = InsertManager(faker)
+  val tableNamesToDrop = dbConfig.getList("tablesToDrop").map(ConfigValue::render)
+  tables.filter { it.tableName in tableNamesToDrop }.forEach {
+    it::deleteAll.now()
+    require(it.selectAll()::empty.now()) {
+      "Table ${it.tableName} is not empty"
+    }
+  }
+  logger.info { "Tables cleared" }
+
+
+  val insertManager = InsertManager(faker, fakerConfig)
 
   logger.info { "InsertManager initialized" }
 
   val studentIds = insertManager.insertStudents()
-  logger.info { "${studentIds.count()} Students inserted" }
+  logger.info { "$studentIds Students inserted" }
   val teacherIds = insertManager.insertTeachers()
-  logger.info { "${teacherIds.count()} Teachers inserted" }
+  logger.info { "$teacherIds Teachers inserted" }
   val translatorIds = insertManager.insertTranslators()
-  logger.info { "${translatorIds.count()} Translators inserted" }
-  val webinarIds = insertManager.insertWebinars(translatorIds, teacherIds)
-  logger.info { "${webinarIds.count()} Webinars inserted" }
+  logger.info { "$translatorIds Translators inserted" }
+  val webinarIds = insertManager.insertWebinars()
+  logger.info { "$webinarIds Webinars inserted" }
+  val subjectIds = insertManager.insertSubjects()
+  logger.info { "$subjectIds Subjects inserted" }
   val studiesIds = insertManager.insertStudies()
-  logger.info { "${studiesIds.count()} Studies inserted" }
-  val semesterIds = insertManager.insertSemesters(studiesIds)
-  logger.info { "${semesterIds.count()} Semesters inserted" }
-  val subjectIds = insertManager.insertSubjects(semesterIds, teacherIds)
-  logger.info { "${subjectIds.count()} Subjects inserted" }
-  val internshipIds = insertManager.insertInternships(studiesIds)
-  logger.info { "${internshipIds.count()} Internships inserted" }
-  val basketIds = insertManager.insertBaskets(studentIds)
-  logger.info { "${basketIds.count()} Baskets inserted" }
+  logger.info { "$studiesIds Studies inserted" }
+  val semesterIds = insertManager.insertSemesters()
+  logger.info { "$semesterIds Semesters inserted" }
+  val internshipIds = insertManager.insertInternships()
+  logger.info { "$internshipIds Internships inserted" }
+  val basketIds = insertManager.insertBaskets()
+  logger.info { "$basketIds Baskets inserted" }
   val roomIds = insertManager.insertRooms()
-  logger.info { "${roomIds.count()} Rooms inserted" }
+  logger.info { "$roomIds Rooms inserted" }
   val courseIds = insertManager.insertCourses()
-  logger.info { "${courseIds.count()} Courses inserted" }
-  val moduleIds = insertManager.insertModules(courseIds, roomIds, teacherIds)
-  logger.info { "${moduleIds.count()} Modules inserted" }
-  val meetingIds = insertManager.insertMeetings(moduleIds, subjectIds, translatorIds, teacherIds)
-  logger.info { "${meetingIds.count()} Meetings inserted" }
-  val parameters = insertManager.insertParameters()
-  logger.info { "$parameters Parameters inserted" }
+  logger.info { "$courseIds Courses inserted" }
+  val moduleIds = insertManager.insertModules()
+  logger.info { "$moduleIds Modules inserted" }
+  val meetingIds = insertManager.insertMeetings()
+  logger.info { "$meetingIds Meetings inserted" }
+  if (fakerConfig.getBoolean("parameters")) {
+    val parameters = insertManager.insertParameters()
+    logger.info { "$parameters Parameters inserted" }
+  }
 
-  val basketItems = insertManager.insertBasketItems(basketIds, courseIds, meetingIds, studiesIds, webinarIds)
+  val basketItems = insertManager.insertBasketItems()
   logger.info { "$basketItems BasketItems inserted" }
-  val internshipStudents = insertManager.insertInternshipStudents(internshipIds, studentIds)
+  val internshipStudents = insertManager.insertStudentInternship()
   logger.info { "$internshipStudents InternshipStudents inserted" }
-  val studentCourses = insertManager.insertStudentCourses(courseIds, studentIds)
+  val studentCourses = insertManager.insertStudentCourses()
   logger.info { "$studentCourses StudentCourses inserted" }
-  val studentMeetings = insertManager.insertStudentMeetings(meetingIds, studentIds)
+  val studentMeetings = insertManager.insertStudentMeetings()
   logger.info { "$studentMeetings StudentMeetings inserted" }
-  val studentMeetingAttendance = insertManager.insertStudentMeetingAttendance(studentIds, meetingIds)
+  val studentMeetingAttendance = insertManager.insertStudentMeetingAttendance()
   logger.info { "$studentMeetingAttendance StudentMeetingAttendance inserted" }
-  val studentWebinars = insertManager.insertStudentWebinars(webinarIds, studentIds)
+  val studentWebinars = insertManager.insertStudentWebinars()
   logger.info { "$studentWebinars StudentWebinars inserted" }
-  val studentStudies = insertManager.insertStudentStudies(studiesIds, studentIds)
+  val studentStudies = insertManager.insertStudentStudies()
   logger.info { "$studentStudies StudentStudies inserted" }
 }
 
 fun <T> (() -> T).now(): T = transaction { this@now() }
+
+fun Config.getRange(path: String): IntRange = getString(path).split("..").let { it[0].toInt()..it[1].toInt() }

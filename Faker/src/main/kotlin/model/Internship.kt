@@ -19,10 +19,10 @@ class Internship(id: EntityID<Int>) : IntEntity(id) {
   var studies by Studies referencedOn Internships.studiesId
   var date by Internships.date
 
-  var students by Student via InternshipStudent
+  var students by Student via StudentInternship
 }
 
-object InternshipStudent : Table("InternshipStudent") {
+object StudentInternship : Table("StudentInternship") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val internshipId = integer("internship_id").references(Internships.id, onDelete = ReferenceOption.CASCADE)
   val attendedDays = integer("attended_days").default(0)

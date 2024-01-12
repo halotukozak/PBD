@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.datetime
 
 object Webinars : IntIdTable("Webinar") {
+  val title = varchar("title", 100)
   val price = integer("price").default(0)
   val date = datetime("date")
   val url = varchar("url", 200).uniqueIndex()
@@ -23,6 +24,7 @@ object Webinars : IntIdTable("Webinar") {
 class Webinar(id: EntityID<Int>) : IntEntity(id) {
   companion object : IntEntityClass<Webinar>(Webinars)
 
+  var title by Webinars.title
   var price by Webinars.price
   var date by Webinars.date
   var url by Webinars.url
