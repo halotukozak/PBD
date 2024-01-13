@@ -59,8 +59,9 @@ CREATE TABLE Translator
 CREATE TABLE Webinar
 (
     id            int                          NOT NULL IDENTITY (1, 1),
+    title         varchar(100)                 NOT NULL,
     price         int         DEFAULT 0        NOT NULL, --in Polish grosz
-    date          date                         NOT NULL,
+    date          datetime                         NOT NULL,
     url           varchar(200)                 NOT NULL UNIQUE,
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
     translator_id int,
@@ -71,7 +72,7 @@ CREATE TABLE Webinar
     FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
-    CONSTRAINT not_negative_webinar_price CHECK (price >= 0),
+    CONSTRAINT not_negative_webinar_price CHECK (price >= 0)
 )
 
 CREATE TABLE StudentWebinar
@@ -89,6 +90,7 @@ CREATE TABLE StudentWebinar
 CREATE TABLE Course
 (
     id            int                          NOT NULL IDENTITY (1, 1),
+    title         varchar(100)                 NOT NULL,
     price         int                          NOT NULL, --in Polish grosz
     advance_price int                          NOT NULL, --in Polish grosz
     subject       varchar(100)                 NOT NULL,
@@ -154,6 +156,7 @@ CREATE TABLE Module
 CREATE TABLE Studies
 (
     id            int                          NOT NULL IDENTITY (1, 1),
+    title         varchar(100)                 NOT NULL,
     syllabus      varchar(5000),
     price         int                          NOT NULL, --in Polish grosz
     advance_price int                          NOT NULL, --in Polish grosz
@@ -235,12 +238,12 @@ CREATE TABLE Internship
     FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE CASCADE,
 )
 
-CREATE TABLE InternshipStudent
+CREATE TABLE StudentInternship
 (
     student_id    int           NOT NULL,
     internship_id int           NOT NULL,
     attended_days int DEFAULT 0 NOT NULL,
-    exam_result   int           NOT NULL,
+    exam_result   int
 
     PRIMARY KEY (student_id, internship_id),
 
@@ -257,7 +260,7 @@ CREATE TABLE Meeting
     module_id               int,
     subject_id              int,
     url                     varchar(200),
-    date                    date        NOT NULL,
+    date                    datetime        NOT NULL,
     type                    varchar(10) NOT NULL,
     standalone_price        int, --in Polish grosz
     translator_id           int,
