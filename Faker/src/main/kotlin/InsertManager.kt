@@ -11,6 +11,9 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.oolab.model.model.Language
+import org.oolab.model.model.Languages
+import org.oolab.model.model.TranslatorLanguage
 import java.time.LocalDateTime
 
 @Suppress("LocalVariableName")
@@ -93,6 +96,14 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config) {
       Room.new {
         number = faker.string.numerify("##.##")
         building = faker.string.bothify("?##", true)
+      }
+    }!!
+  }.count()
+
+  suspend fun insertLanguages(): Int = List(get("languages")) {
+    safeTransaction {
+      Language.new {
+        name = faker.nation.language()
       }
     }!!
   }.count()
@@ -216,7 +227,6 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config) {
     safeTransaction {
       val (firstName, lastName) = faker.name.let { it.firstName() to it.lastName() }
       Translator.new {
-        language = faker.nation.language()
         name = firstName
         surname = lastName
         address = faker.address.fullAddress()
@@ -225,6 +235,21 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config) {
       }
     }!!
   }.count()
+
+  suspend fun insertTranslatorLanguage(): Int {
+    val languageIds = Languages.allIds()
+    val translatorIds = Translators.allIds()
+    return languageIds.sumOf { _languageId ->
+      translatorIds.takeRandom(faker.random.nextInt(get<IntRange>("languageTranslations"))).map { _translatorId ->
+        safeTransaction {
+          TranslatorLanguage.insert {
+            it[languageId] = _languageId
+            it[translatorId] = _translatorId
+          }
+        }
+      }.countNotNull()
+    }
+  }
 
   suspend fun insertTeachers(): Int = List(get("teachers")) {
     safeTransaction {

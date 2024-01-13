@@ -112,6 +112,8 @@ suspend fun main() {
   logger.info { "$teacherIds Teachers inserted" }
   val translatorIds = insertManager.insertTranslators()
   logger.info { "$translatorIds Translators inserted" }
+  val languagesIds = insertManager.insertLanguages()
+  logger.info { "$languagesIds Languages inserted" }
   val webinarIds = insertManager.insertWebinars()
   logger.info { "$webinarIds Webinars inserted" }
   val subjectIds = insertManager.insertSubjects()
@@ -151,6 +153,8 @@ suspend fun main() {
   logger.info { "$studentWebinars StudentWebinars inserted" }
   val studentStudies = insertManager.insertStudentStudies()
   logger.info { "$studentStudies StudentStudies inserted" }
+  val languageTranslators = insertManager.insertTranslatorLanguage()
+  logger.info { "$languageTranslators LanguageTranslators inserted" }
 }
 
 fun <T> (() -> T).now(): T = transaction { this@now() }
