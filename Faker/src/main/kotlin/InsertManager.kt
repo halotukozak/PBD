@@ -248,7 +248,7 @@ class InsertManager(private val faker: Faker) {
 
   suspend fun insertParameters(): Int = listOf(
     "internship_length" to 14,
-    "internship_required_attendance" to 7,
+    "internship_required_attendance" to 100,
     "internship_exam_required_result" to 50,
     "availability_period" to 30,
     "module_completion_threshold" to 80,

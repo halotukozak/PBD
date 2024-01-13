@@ -1,4 +1,4 @@
-CREATE PROCEDURE AddStudent
+CREATE PROCEDURE add_student
     @first_name VARCHAR(50),
     @last_name VARCHAR(50),
     @address VARCHAR(200),
@@ -6,12 +6,12 @@ CREATE PROCEDURE AddStudent
     @phone VARCHAR(20)
 AS
 BEGIN
-    INSERT INTO Student (name, surname, address, email, phone_number)
+    INSERT INTO Student (first_name, last_name, address, email, phone_number)
     VALUES (@first_name, @last_name, @address, @email, @phone);
 END;
 GO
 
-CREATE PROCEDURE AddTeacher
+CREATE PROCEDURE add_teacher
     @first_name VARCHAR(50),
     @last_name VARCHAR(50),
     @address VARCHAR(200),
@@ -19,12 +19,12 @@ CREATE PROCEDURE AddTeacher
     @phone VARCHAR(20)
 AS
 BEGIN
-    INSERT INTO Teacher (name, surname, address, email, phone_number)
+    INSERT INTO Teacher (first_name, last_name, address, email, phone_number)
     VALUES (@first_name, @last_name, @address, @email, @phone);
 END;
 GO
 
-CREATE PROCEDURE AddTranslator
+CREATE PROCEDURE add_translator
     @first_name VARCHAR(50),
     @last_name VARCHAR(50),
     @address VARCHAR(200),
@@ -33,15 +33,15 @@ CREATE PROCEDURE AddTranslator
     @language VARCHAR(50)
 AS
 BEGIN
-    INSERT INTO Translator (name, surname, address, email, phone_number, language)
+    INSERT INTO Translator (first_name, last_name, address, email, phone_number, language)
     VALUES (@first_name, @last_name, @address, @email, @phone, @language);
 END;
 GO
--- EXEC AddStudent 'Bartłomiej', 'Kozak', 'Kraków 607 Kapitol', 'b_kozak@student.agh.edu.pl', '123321123'
+-- EXEC add_student 'Bartłomiej', 'Kozak', 'Kraków', 'kozakk@student.agh.edu.pl', '123321123'
 
 
 
-CREATE PROCEDURE UpdateStudent
+CREATE PROCEDURE update_student
     @student_id INT,
     @first_name VARCHAR(50) = NULL,
     @last_name VARCHAR(50) = NULL,
@@ -53,13 +53,13 @@ BEGIN
     IF @first_name IS NOT NULL
         BEGIN
             UPDATE Student
-            SET name = @first_name
+            SET first_name = @first_name
             WHERE id = @student_id;
         END
     IF @last_name IS NOT NULL
         BEGIN
             UPDATE Student
-            SET surname = @last_name
+            SET last_name = @last_name
             WHERE id = @student_id;
         END
     IF @address IS NOT NULL
@@ -83,7 +83,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE UpdateTeacher
+CREATE PROCEDURE update_teacher
     @teacher_id INT,
     @first_name VARCHAR(50) = NULL,
     @last_name VARCHAR(50) = NULL,
@@ -95,13 +95,13 @@ BEGIN
     IF @first_name IS NOT NULL
         BEGIN
             UPDATE Teacher
-            SET name = @first_name
+            SET first_name = @first_name
             WHERE id = @teacher_id;
         END
     IF @last_name IS NOT NULL
         BEGIN
             UPDATE Teacher
-            SET surname = @last_name
+            SET last_name = @last_name
             WHERE id = @teacher_id;
         END
     IF @address IS NOT NULL
@@ -125,7 +125,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE UpdateTranslator
+CREATE PROCEDURE update_translator
     @translator_id INT,
     @first_name VARCHAR(50) = NULL,
     @last_name VARCHAR(50) = NULL,
@@ -138,13 +138,13 @@ BEGIN
     IF @first_name IS NOT NULL
         BEGIN
             UPDATE Translator
-            SET name = @first_name
+            SET first_name = @first_name
             WHERE id = @translator_id;
         END
     IF @last_name IS NOT NULL
         BEGIN
             UPDATE Translator
-            SET surname = @last_name
+            SET last_name = @last_name
             WHERE id = @translator_id;
         END
     IF @address IS NOT NULL
@@ -173,11 +173,11 @@ BEGIN
         END
 END;
 GO
--- EXEC UpdateStudent 17,  @address = 'New address';
+-- EXEC update_student 17,  @address = 'New address';
 
 
 
-CREATE PROCEDURE AddWebinar
+CREATE PROCEDURE add_webinar
     @title VARCHAR(50),
     @date DATETIME,
     @teacher_id INT,
@@ -196,9 +196,9 @@ BEGIN
     VALUES (@title, @date, @teacher_id, @url, @price, @language, @translator_id);
 END;
 GO
--- EXEC AddWebinar 'Webinar 1', '2019-01-01 12:00:00', 1, 'https://www.youtube.com/watch?v=1', 10000
+-- EXEC add_webinar 'Webinar 1', '2019-01-01 12:00:00', 1, 'https://www.youtube.com/watch?v=1', 10000
 
-CREATE PROCEDURE UpdateWebinar
+CREATE PROCEDURE update_webinar
     @webinar_id INT,
     @title VARCHAR(50) = NULL,
     @date DATETIME = NULL,
@@ -253,11 +253,11 @@ BEGIN
         END
 END;
 GO
--- EXEC UpdateWebinar 1, @url = 'https://www.youtube.com/watch?v=2', @teacher_id = 2
+-- EXEC update_webinar 1, @url = 'https://www.youtube.com/watch?v=2', @teacher_id = 2
 
 
 
-CREATE PROCEDURE AddCourse
+CREATE PROCEDURE add_course
     @title VARCHAR(50),
     @student_limit INT,
     @price INT,
@@ -275,9 +275,9 @@ BEGIN
     VALUES (@title, @student_limit, @price, @advance_price, @language, @subject);
 END;
 GO
--- EXEC AddCourse 'C#', 10, 50000, 500, 'English', 'Programming'
+-- EXEC add_course 'C#', 10, 50000, 500, 'English', 'Programming'
 
-CREATE PROCEDURE UpdateCourse
+CREATE PROCEDURE update_course
     @course_id INT,
     @title VARCHAR(50) = NULL,
     @student_limit INT = NULL,
@@ -325,11 +325,11 @@ BEGIN
         END
 END;
 GO
--- EXEC UpdateCourse 1, @title = 'C++', @price = 5000
+-- EXEC update_course 1, @title = 'C++', @price = 5000
 
 
 
-CREATE PROCEDURE AddModule
+CREATE PROCEDURE add_module
     @course_id INT,
     @teacher_id INT,
     @type VARCHAR(15),
@@ -340,9 +340,9 @@ BEGIN
     VALUES (@course_id, @teacher_id, @type, @room_id);
 END;
 GO
--- EXEC AddModule 12, 23, 'in_person', 17
+-- EXEC add_module 12, 23, 'in_person', 17
 
-CREATE PROCEDURE UpdateModule
+CREATE PROCEDURE update_module
     @module_id INT,
     @course_id INT = NULL,
     @teacher_id INT = NULL,
@@ -390,11 +390,11 @@ BEGIN
         END
 END;
 GO
--- EXEC UpdateModule 1, @type = 'online_sync'
+-- EXEC update_module 1, @type = 'online_sync'
 
 
 
-CREATE PROCEDURE AddStudy
+CREATE PROCEDURE add_studies
     @title VARCHAR(50),
     @student_limit INT,
     @price INT,
@@ -410,10 +410,10 @@ BEGIN
     VALUES (@title, @student_limit, @price, @advance_price, @syllabus, @language);
 END;
 GO
--- EXEC AddStudy 'Math', 150, 400000, 50000, 'we will be learning algebra'
+-- EXEC add_studies 'Math', 150, 400000, 50000, 'we will be learning algebra'
 
-CREATE PROCEDURE UpdateStudy
-    @study_id INT,
+CREATE PROCEDURE update_studies
+    @studies_id INT,
     @title VARCHAR(50) = NULL,
     @student_limit INT = NULL,
     @price INT = NULL,
@@ -426,46 +426,46 @@ BEGIN
         BEGIN
             UPDATE Studies
             SET title = @title
-            WHERE id = @study_id;
+            WHERE id = @studies_id;
         END
     IF @student_limit IS NOT NULL
         BEGIN
             UPDATE Studies
             SET student_limit = @student_limit
-            WHERE id = @study_id;
+            WHERE id = @studies_id;
         END
     IF @price IS NOT NULL
         BEGIN
             UPDATE Studies
             SET price = @price
-            WHERE id = @study_id;
+            WHERE id = @studies_id;
         END
     IF @advance_price IS NOT NULL
         BEGIN
             UPDATE Studies
             SET advance_price = @advance_price
-            WHERE id = @study_id;
+            WHERE id = @studies_id;
         END
     IF @syllabus IS NOT NULL
         BEGIN
             UPDATE Studies
             SET syllabus = @syllabus
-            WHERE id = @study_id;
+            WHERE id = @studies_id;
         END
     IF @language IS NOT NULL
         BEGIN
             UPDATE Studies
             SET language = @language
-            WHERE id = @study_id;
+            WHERE id = @studies_id;
         END
 END;
 GO
--- EXEC UpdateStudy 1, @syllabus = 'We will be learning geometry'
+-- EXEC update_studies 1, @syllabus = 'We will be learning geometry'
 
 
 
-CREATE PROCEDURE AddSemester
-    @study_id INT,
+CREATE PROCEDURE add_semester
+    @studies_id INT,
     @start_date DATE,
     @end_date DATE,
     @schedule VARCHAR(50) = NULL,
@@ -473,27 +473,27 @@ CREATE PROCEDURE AddSemester
 AS
 BEGIN
     IF @number IS NULL
-        SET @number = dbo.getLastSemester(@study_id) + 1;
+        SET @number = dbo.get_last_semester(@studies_id) + 1;
 
     INSERT INTO Semester (studies_id, number, start_date, end_date, schedule)
-    VALUES (@study_id, @number, @start_date, @end_date, @schedule);
+    VALUES (@studies_id, @number, @start_date, @end_date, @schedule);
 END;
 GO
--- EXEC AddSemester 1, '2020-10-01', '2021-01-01'
+-- EXEC add_semester 1, '2020-10-01', '2021-01-01'
 
-CREATE PROCEDURE UpdateSemester
+CREATE PROCEDURE update_semester
     @semester_id INT,
-    @study_id INT = NULL,
+    @studies_id INT = NULL,
     @start_date DATE = NULL,
     @end_date DATE = NULL,
     @schedule VARCHAR(50) = NULL,
     @number INT = NULL
 AS
 BEGIN
-    IF @study_id IS NOT NULL
+    IF @studies_id IS NOT NULL
         BEGIN
             UPDATE Semester
-            SET studies_id = @study_id
+            SET studies_id = @studies_id
             WHERE id = @semester_id;
         END
     IF @start_date IS NOT NULL
@@ -522,11 +522,11 @@ BEGIN
         END
 END;
 GO
--- EXEC UpdateSemester 17, @end_date =  '2021-01-01', @schedule = 'https://web.usos.agh.edu.pl/kontroler.php?_action=home/plan'
+-- EXEC update_semester 17, @end_date =  '2021-01-01', @schedule = 'https://web.usos.agh.edu.pl/kontroler.php?_action=home/plan'
 
 
 
-CREATE PROCEDURE AddSubject
+CREATE PROCEDURE add_subject
     @name VARCHAR(200),
     @semester_id INT,
     @teacher_id INT,
@@ -537,9 +537,9 @@ BEGIN
     VALUES (@name, @semester_id, @teacher_id, @room_id);
 END;
 GO
--- EXEC AddSubject 'Bazy danych', 17, 1
+-- EXEC add_subject 'Bazy danych', 17, 1
 
-CREATE PROCEDURE UpdateSubject
+CREATE PROCEDURE update_subject
     @subject_id INT,
     @name VARCHAR(200) = NULL,
     @semester_id INT = NULL,
@@ -573,11 +573,11 @@ BEGIN
         END
 END;
 GO
--- EXEC UpdateSubject 17, @name = 'Programowanie obiektowe', @teacher_id = 23
+-- EXEC update_subject 17, @name = 'Programowanie obiektowe', @teacher_id = 23
 
 
 
-CREATE PROCEDURE AddMeeting
+CREATE PROCEDURE add_meeting
     @module_id INT = NULL,
     @subject_id INT = NULL,
     @date DATETIME,
@@ -594,9 +594,9 @@ BEGIN
     VALUES (@module_id, @subject_id, @date, @student_limit, @type, @url, @substituting_room_id, @substituting_teacher_id, @translator_id, @standalone_price);
 END;
 GO
--- EXEC AddMeeting @module_id = 1, @date = '2021-01-01 12:00:00', @student_limit = 20, @type = 'in_person'
+-- EXEC add_meeting @module_id = 1, @date = '2021-01-01 12:00:00', @student_limit = 20, @type = 'in_person'
 
-CREATE PROCEDURE UpdateMeeting
+CREATE PROCEDURE update_meeting
     @meeting_id INT,
     @module_id INT = NULL,
     @subject_id INT = NULL,
@@ -674,11 +674,11 @@ BEGIN
         END
 END;
 GO
--- EXEC UpdateMeeting 1, @substituting_teacher_id = 27, @substituting_room_id = 17
+-- EXEC update_meeting 1, @substituting_teacher_id = 27, @substituting_room_id = 17
 
 
 
-CREATE PROCEDURE AddStudentToMeeting
+CREATE PROCEDURE enroll_student_for_meeting
     @student_id INT,
     @meeting_id INT,
     @payment_date DATETIME = NULL
@@ -688,9 +688,9 @@ BEGIN
     VALUES (@student_id, @meeting_id, @payment_date);
 END;
 GO
--- EXEC AddStudentToMeeting 17, 23, '2021-01-01 12:00:00'
+-- EXEC enroll_student_for_meeting 17, 23, '2021-01-01 12:00:00'
 
-CREATE PROCEDURE RemoveStudentFromMeeting
+CREATE PROCEDURE dis_enroll_student_from_meeting
     @student_id INT,
     @meeting_id INT
 AS
@@ -699,9 +699,9 @@ BEGIN
     WHERE student_id = @student_id AND meeting_id = @meeting_id;
 END;
 GO
--- EXEC RemoveStudentFromMeeting 17, 23
+-- EXEC dis_enroll_student_from_meeting 17, 23
 
-CREATE PROCEDURE PayForMeeting
+CREATE PROCEDURE register_meeting_payment
     @student_id INT,
     @meeting_id INT,
     @payment_date DATETIME = CURRENT_TIMESTAMP
@@ -712,11 +712,11 @@ BEGIN
     WHERE student_id = @student_id AND meeting_id = @meeting_id;
 END;
 GO
--- EXEC PayForMeeting 17, 23
+-- EXEC register_meeting_payment 17, 23
 
 
 
-CREATE PROCEDURE AddStudentToCourse
+CREATE PROCEDURE enroll_student_for_course
     @student_id INT,
     @course_id INT,
     @advance_payment_date DATETIME = NULL,
@@ -727,9 +727,9 @@ BEGIN
     VALUES (@student_id, @course_id, @advance_payment_date, @full_payment_date);
 END;
 GO
--- EXEC AddStudentToCourse 17, 23, @advance_payment_date = '2021-01-01 12:00:00'
+-- EXEC enroll_student_for_course 17, 23, @advance_payment_date = '2021-01-01 12:00:00'
 
-CREATE PROCEDURE RemoveStudentFromCourse
+CREATE PROCEDURE dis_enroll_student_from_course
     @student_id INT,
     @course_id INT
 AS
@@ -738,9 +738,9 @@ BEGIN
     WHERE student_id = @student_id AND course_id = @course_id;
 END;
 GO
--- EXEC RemoveStudentFromCourse 17, 23
+-- EXEC dis_enroll_student_from_course 17, 23
 
-CREATE PROCEDURE PayForCourse
+CREATE PROCEDURE register_course_payment
     @student_id INT,
     @course_id INT,
     @advance_payment_date DATETIME = CURRENT_TIMESTAMP,
@@ -753,11 +753,11 @@ BEGIN
     WHERE student_id = @student_id AND course_id = @course_id;
 END;
 GO
--- EXEC PayForCourse 17, 23
+-- EXEC register_course_payment 17, 23
 
 
 
-CREATE PROCEDURE AddStudentToStudies
+CREATE PROCEDURE enroll_student_for_studies
     @student_id INT,
     @studies_id INT,
     @registration_payment_date DATETIME = NULL
@@ -767,9 +767,9 @@ BEGIN
     VALUES (@student_id, @studies_id, @registration_payment_date);
 END;
 GO
--- EXEC AddStudentToStudies 17, 23, @registration_payment_date = '2021-01-01 12:00:00'
+-- EXEC enroll_student_for_studies 17, 23, @registration_payment_date = '2021-01-01 12:00:00'
 
-CREATE PROCEDURE RemoveStudentFromStudies
+CREATE PROCEDURE dis_enroll_student_from_studies
     @student_id INT,
     @studies_id INT
 AS
@@ -783,9 +783,9 @@ BEGIN
     WHERE student_id = @student_id;
 END;
 GO
--- EXEC RemoveStudentFromStudies 17, 23
+-- EXEC dis_enroll_student_from_studies 17, 23
 
-CREATE PROCEDURE PayForStudies
+CREATE PROCEDURE register_studies_payment
     @student_id INT,
     @studies_id INT,
     @registration_payment_date DATETIME = CURRENT_TIMESTAMP
@@ -796,9 +796,9 @@ BEGIN
     WHERE student_id = @student_id AND studies_id = @studies_id;
 END;
 GO
--- EXEC PayForStudies 17, 23
+-- EXEC register_studies_payment 17, 23
 
-CREATE PROCEDURE SendGraduationCertificate
+CREATE PROCEDURE send_graduation_certificate
     @student_id INT,
     @studies_id INT,
     @certificate_post_date DATETIME = CURRENT_TIMESTAMP
@@ -809,11 +809,11 @@ BEGIN
     WHERE student_id = @student_id AND studies_id = @studies_id;
 END;
 GO
--- EXEC SendGraduationCertificate 17, 23
+-- EXEC send_graduation_certificate 17, 23
 
 
 
-CREATE PROCEDURE AddStudentToWebinar
+CREATE PROCEDURE enroll_student_for_webinar
     @student_id INT,
     @webinar_id INT,
     @payment_date DATETIME = NULL
@@ -823,9 +823,9 @@ BEGIN
     VALUES (@student_id, @webinar_id, @payment_date);
 END;
 GO
--- EXEC AddStudentToWebinar 17, 23, @payment_date = '2021-01-01 12:00:00'
+-- EXEC enroll_student_for_webinar 17, 23, @payment_date = '2021-01-01 12:00:00'
 
-CREATE PROCEDURE RemoveStudentFromWebinar
+CREATE PROCEDURE dis_enroll_student_from_webinar
     @student_id INT,
     @webinar_id INT
 AS
@@ -834,9 +834,9 @@ BEGIN
     WHERE student_id = @student_id AND webinar_id = @webinar_id;
 END;
 GO
--- EXEC RemoveStudentFromWebinar 17, 23
+-- EXEC dis_enroll_student_from_webinar 17, 23
 
-CREATE PROCEDURE PayForWebinar
+CREATE PROCEDURE register_webinar_payment
     @student_id INT,
     @webinar_id INT,
     @payment_date DATETIME = CURRENT_TIMESTAMP
@@ -847,11 +847,11 @@ BEGIN
     WHERE student_id = @student_id AND webinar_id = @webinar_id;
 END;
 GO
--- EXEC PayForWebinar 17, 23
+-- EXEC register_webinar_payment 17, 23
 
 
 
-CREATE PROCEDURE AddStudentToSemester
+CREATE PROCEDURE enroll_student_for_semester
     @student_id INT,
     @semester_id INT,
     @payment_date DATETIME = NULL
@@ -861,9 +861,9 @@ BEGIN
     VALUES (@student_id, @semester_id, @payment_date);
 END;
 GO
--- EXEC AddStudentToSemester 17, 23
+-- EXEC enroll_student_for_semester 17, 23
 
-CREATE PROCEDURE RemoveStudentFromSemester
+CREATE PROCEDURE dis_enroll_student_from_semester
     @student_id INT,
     @semester_id INT
 AS
@@ -872,9 +872,9 @@ BEGIN
     WHERE student_id = @student_id AND semester_id = @semester_id;
 END;
 GO
--- EXEC RemoveStudentFromSemester 17, 23
+-- EXEC dis_enroll_student_from_semester 17, 23
 
-CREATE PROCEDURE PayForSemester
+CREATE PROCEDURE register_semester_payment
     @student_id INT,
     @semester_id INT,
     @payment_date DATETIME = CURRENT_TIMESTAMP
@@ -885,11 +885,11 @@ BEGIN
     WHERE student_id = @student_id AND semester_id = @semester_id;
 END;
 GO
--- EXEC PayForSemester 17, 23, @payment_date = '2021-01-01 12:00:00'
+-- EXEC register_semester_payment 17, 23, @payment_date = '2021-01-01 12:00:00'
 
 
 
-CREATE PROCEDURE AddStudentToInternship
+CREATE PROCEDURE enroll_student_for_internship
     @student_id INT,
     @internship_id INT
 AS
@@ -898,9 +898,9 @@ BEGIN
     VALUES (@student_id, @internship_id);
 END;
 GO
--- EXEC AddStudentToInternship 17, 23
+-- EXEC enroll_student_for_internship 17, 23
 
-CREATE PROCEDURE RemoveStudentFromInternship
+CREATE PROCEDURE dis_enroll_student_from_internship
     @student_id INT,
     @internship_id INT
 AS
@@ -909,9 +909,9 @@ BEGIN
     WHERE student_id = @student_id AND internship_id = @internship_id;
 END;
 GO
--- EXEC RemoveStudentFromInternship 17, 23
+-- EXEC dis_enroll_student_from_internship 17, 23
 
-CREATE PROCEDURE LogInternshipAttendance
+CREATE PROCEDURE register_internship_attendance
     @student_id INT,
     @internship_id INT
 AS
@@ -921,9 +921,9 @@ BEGIN
     WHERE student_id = @student_id AND internship_id = @internship_id;
 END;
 GO
--- EXEC LogInternshipAttendance 17, 23
+-- EXEC log_internship_attendance 17, 23
 
-CREATE PROCEDURE SetInternshipExamResult
+CREATE PROCEDURE register_internship_exam_result
     @student_id INT,
     @internship_id INT,
     @exam_result INT
@@ -934,11 +934,11 @@ BEGIN
     WHERE student_id = @student_id AND internship_id = @internship_id;
 END;
 GO
--- EXEC SetInternshipExamResult 17, 23, 60
+-- EXEC set_internship_exam_result 17, 23, 60
 
 
 
-CREATE PROCEDURE LogMeetingAttendance
+CREATE PROCEDURE register_meeting_attendance
     @student_id INT,
     @meeting_id INT
 AS
@@ -947,11 +947,11 @@ BEGIN
     VALUES (@student_id, @meeting_id);
 END;
 GO
--- EXEC LogMeetingAttendance 17, 23
+-- EXEC log_meeting_attendance 17, 23
 
 
 
-CREATE PROCEDURE AddParameter
+CREATE PROCEDURE add_parameter
     @name NVARCHAR(50),
     @value NVARCHAR(50),
     @date DATE = NULL
@@ -964,12 +964,12 @@ BEGIN
     VALUES (@name, @value, @date);
 END;
 GO
--- EXEC AddParameter 'TEST PARAMETER', 2, '2019-01-01';
--- EXEC AddParameter 'TEST PARAMETER', 'value';
+-- EXEC add_parameter 'TEST PARAMETER', 2, '2019-01-01';
+-- EXEC add_parameter 'TEST PARAMETER', 'value';
 
 
 
-CREATE PROCEDURE CreateBasket
+CREATE PROCEDURE create_basket
 @student_id INT
 AS
 BEGIN
@@ -977,9 +977,9 @@ BEGIN
     VALUES (@student_id, 'open', CURRENT_TIMESTAMP);
 END;
 GO
--- EXEC CreateBasket 17
+-- EXEC create_basket 17
 
-CREATE PROCEDURE AddItemToBasket
+CREATE PROCEDURE add_item_to_basket
     @student_id INT,
     @course_id INT = NULL,
     @meeting_id INT = NULL,
@@ -987,12 +987,12 @@ CREATE PROCEDURE AddItemToBasket
     @webinar_id INT = NULL
 AS
 BEGIN
-    DECLARE @basket_id INT = dbo.getStudentsBasket(@student_id);
+    DECLARE @basket_id INT = dbo.get_students_basket(@student_id);
 
     IF @basket_id IS NULL
         BEGIN
-            EXEC CreateBasket @student_id;
-            SET @basket_id = dbo.getStudentsBasket(@student_id);
+            EXEC create_basket @student_id;
+            SET @basket_id = dbo.get_students_basket(@student_id);
         END
 
     IF @course_id IS NOT NULL
@@ -1020,9 +1020,9 @@ BEGIN
         END
 END;
 GO
--- EXEC AddItemToBasket 17, @course_id = 3
+-- EXEC add_item_to_basket 17, @course_id = 3
 
-CREATE PROCEDURE RemoveItemFromBasket
+CREATE PROCEDURE remove_item_from_basket
     @basket_id INT,
     @course_id INT = NULL,
     @meeting_id INT = NULL,
@@ -1055,9 +1055,9 @@ BEGIN
         END
 END;
 GO
--- EXEC RemoveItemFromBasket 35, @course_id = 3
+-- EXEC remove_item_from_basket 35, @course_id = 3
 
-CREATE PROCEDURE FailBasketPayment
+CREATE PROCEDURE register_failed_payment
 @basket_id INT
 AS
 BEGIN
@@ -1066,9 +1066,9 @@ BEGIN
     WHERE id = @basket_id;
 END;
 GO
--- EXEC FailBasketPayment 35
+-- EXEC fail_basket_payment 35
 
-CREATE PROCEDURE ApproveBasketPayment
+CREATE PROCEDURE register_successful_payment
 @basket_id INT
 AS
 BEGIN
@@ -1090,19 +1090,19 @@ BEGIN
         BEGIN
             IF @current_course IS NOT NULL
                 BEGIN
-                    EXEC AddStudentToCourse @student_id, @current_course, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP;
+                    EXEC add_student_to_course @student_id, @current_course, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP;
                 END
             IF @current_meeting IS NOT NULL
                 BEGIN
-                    EXEC AddStudentToMeeting @student_id, @current_meeting, CURRENT_TIMESTAMP;
+                    EXEC add_student_to_meeting @student_id, @current_meeting, CURRENT_TIMESTAMP;
                 END
             IF @current_studies IS NOT NULL
                 BEGIN
-                    EXEC AddStudentToStudies @student_id, @current_studies, CURRENT_TIMESTAMP;
+                    EXEC add_student_to_studies @student_id, @current_studies, CURRENT_TIMESTAMP;
                 END
             IF @current_webinar IS NOT NULL
                 BEGIN
-                    EXEC AddStudentToWebinar @student_id, @current_webinar, CURRENT_TIMESTAMP;
+                    EXEC add_student_to_webinar @student_id, @current_webinar, CURRENT_TIMESTAMP;
                 END
 
             FETCH NEXT FROM BasketItemCursor INTO @current_course, @current_meeting, @current_studies, @current_webinar
@@ -1116,21 +1116,30 @@ BEGIN
     WHERE id = @basket_id;
 END;
 GO
--- EXEC ApproveBasketPayment 35
+-- EXEC approve_basket_payment 35
 
 
 
+-- A sonnet in the language of the code,
+-- Where tables dance and relationships bode.
 
+-- First, select the verses from the dataset,
+-- Where rows and columns intertwine, be set.
 
+-- Inner join, the lines elegantly blend,
+-- Each word connected, relationships transcend.
 
+-- Where clauses whisper conditions wise,
+-- Filtering stanzas, where the meaning lies.
 
+-- Order by, the lines arrange their fate,
+-- Ascending or descending, a rhythmic state.
 
+-- Group by, a chorus, a harmonious song,
+-- Aggregates sing, as data dance along.
 
+-- A comment here, a note to self,
+-- A code poet's tale, on the database shelf.
 
-
-
-
-
-
-
-
+-- Sixteen lines, a poem complete,
+-- In SQL, where data and verses meet.

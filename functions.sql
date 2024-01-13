@@ -1,4 +1,4 @@
-CREATE FUNCTION getParameter(
+CREATE FUNCTION get_parameter_value(
     @name VARCHAR(50)
 )
     RETURNS VARCHAR(50)
@@ -11,10 +11,10 @@ BEGIN
             ORDER BY date DESC);
 END;
 GO
--- SELECT dbo.getParameter('availability_period_in_days') AS 'parameter'
+-- SELECT dbo.get_parameter('availability_period_in_days') AS 'parameter'
 
 
-CREATE FUNCTION internshipFinished(
+CREATE FUNCTION is_internship_finished(
     @student_id INT
 )
     RETURNS INT
@@ -24,8 +24,7 @@ BEGIN
     IF EXISTS(SELECT *
               FROM InternshipStudent
               WHERE student_id = @student_id
-                AND attended_days >= CAST(dbo.getParameter('internship_required_attendance') AS INT)
-                AND exam_result >= CAST(dbo.getParameter('internship_exam_required_result') AS INT))
+                AND exam_result >= CAST(dbo.get_parameter('internship_exam_required_result') AS INT))
         SET @result = 1;
     ELSE
         SET @result = 0;
@@ -33,10 +32,10 @@ BEGIN
     RETURN @result;
 END;
 GO
--- SELECT dbo.internshipFinished(348) AS 'finished'
+-- SELECT dbo.is_internship_finished(348) AS 'finished'
 
 
-CREATE FUNCTION presentOnMeeting(
+CREATE FUNCTION was_present_on_meeting(
     @student_id INT,
     @meeting_id INT
 )
@@ -55,10 +54,10 @@ BEGIN
     RETURN @result;
 END;
 GO
--- SELECT dbo.presentOnMeeting(348, 1) AS 'present'
+-- SELECT dbo.was_present_on_meeting(348, 1) AS 'present'
 
 
-CREATE FUNCTION getStudentData(
+CREATE FUNCTION get_student_info(
     @student_id INT
 )
     RETURNS TABLE
@@ -71,7 +70,7 @@ CREATE FUNCTION getStudentData(
             );
 GO
 
-CREATE FUNCTION getTeacherData(
+CREATE FUNCTION get_teacher_info(
     @teacher_id INT
 )
     RETURNS TABLE
@@ -84,7 +83,7 @@ CREATE FUNCTION getTeacherData(
             );
 GO
 
-CREATE FUNCTION getTranslatorData(
+CREATE FUNCTION get_translator_info(
     @translator_id INT
 )
     RETURNS TABLE
@@ -96,10 +95,10 @@ CREATE FUNCTION getTranslatorData(
                 WHERE id = @translator_id
             );
 GO
--- SELECT * FROM dbo.getStudentData(348)
+-- SELECT * FROM dbo.get_student_data(348)
 
 
-CREATE FUNCTION getLastSemester(
+CREATE FUNCTION get_last_semester(
     @study_id INT
 )
     RETURNS INT
@@ -111,9 +110,9 @@ BEGIN
             ORDER BY number DESC);
 END;
 GO
--- SELECT dbo.getLastSemester(1) AS 'semester'
+-- SELECT dbo.get_last_semester(1) AS 'semester'
 
-CREATE FUNCTION isOnStudies(
+CREATE FUNCTION enrolled_on_studies(
     @student_id INT,
     @studies_id INT
 )
@@ -132,9 +131,9 @@ BEGIN
     RETURN @result;
 END;
 GO
--- SELECT dbo.isOnStudies(348, 1) AS 'on_studies'
+-- SELECT dbo.is_on_studies(348, 1) AS 'on_studies'
 
-CREATE FUNCTION semesterStudies(
+CREATE FUNCTION get_studies_of_semester(
     @semester_id INT
 )
     RETURNS INT
@@ -145,9 +144,9 @@ BEGIN
             WHERE id = @semester_id);
 END;
 GO
--- SELECT dbo.semesterStudies(1) AS 'studies'
+-- SELECT dbo.get_studies_of_semester(1) AS 'studies'
 
-CREATE FUNCTION getStudentsBasket(
+CREATE FUNCTION get_student_basket(
     @student_id INT
 )
     RETURNS INT
@@ -160,9 +159,9 @@ BEGIN
             ORDER BY create_date DESC);
 END;
 GO
--- SELECT dbo.getStudentsBasket(348) AS 'basket'
+-- SELECT dbo.get_students_basket(348) AS 'basket'
 
-CREATE FUNCTION getBasketItems(
+CREATE FUNCTION get_basket_items(
     @basket_id INT
 )
     RETURNS TABLE AS
@@ -173,7 +172,4 @@ CREATE FUNCTION getBasketItems(
                 WHERE basket_id = @basket_id
             );
 GO
--- SELECT * FROM dbo.getBasketItems(3)
-
-
-
+-- SELECT * FROM dbo.get_basket_items(3)
