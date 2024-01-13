@@ -16,4 +16,6 @@ Fundamentals of Databases 2023/2024 – project
 
 The full documentation is available in [Wiki](https://github.com/halotukozak/PBD/wiki) tab  
 
+![diagram](diagram.png)
+
 by [Bartosz Buczek](https://github.com/Corvette653), [Bartłomiej Kozak](https://github.com/halotukozak), [Tomasz Kurcoń](https://github.com/tomaszkurcon)
