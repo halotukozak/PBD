@@ -46,7 +46,6 @@ CREATE TABLE Teacher
 CREATE TABLE Translator
 (
     id           int          NOT NULL IDENTITY (1, 1),
-    language     varchar(50)  NOT NULL,
     name         varchar(50)  NOT NULL,
     surname      varchar(50)  NOT NULL,
     address      varchar(200) NOT NULL,
@@ -56,12 +55,31 @@ CREATE TABLE Translator
     PRIMARY KEY (id),
 )
 
+CREATE TABLE Language
+(
+    id   int         NOT NULL IDENTITY (1, 1),
+    name varchar(50) NOT NULL UNIQUE,
+
+    PRIMARY KEY (id),
+)
+
+CREATE TABLE TranslatorLanguage
+(
+    translator_id int NOT NULL,
+    language_id   int NOT NULL,
+
+    PRIMARY KEY (translator_id, language_id),
+
+    FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE CASCADE,
+    FOREIGN KEY (language_id) REFERENCES Language (id) ON DELETE CASCADE,
+)
+
 CREATE TABLE Webinar
 (
     id            int                          NOT NULL IDENTITY (1, 1),
     title         varchar(100)                 NOT NULL,
     price         int         DEFAULT 0        NOT NULL, --in Polish grosz
-    date          datetime                         NOT NULL,
+    date          datetime                     NOT NULL,
     url           varchar(200)                 NOT NULL UNIQUE,
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
     translator_id int,
@@ -244,8 +262,7 @@ CREATE TABLE StudentInternship
     internship_id int           NOT NULL,
     attended_days int DEFAULT 0 NOT NULL,
     exam_result   int
-
-    PRIMARY KEY (student_id, internship_id),
+        PRIMARY KEY (student_id, internship_id),
 
     FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
     FOREIGN KEY (internship_id) REFERENCES Internship (id) ON DELETE CASCADE,
@@ -260,7 +277,7 @@ CREATE TABLE Meeting
     module_id               int,
     subject_id              int,
     url                     varchar(200),
-    date                    datetime        NOT NULL,
+    date                    datetime    NOT NULL,
     type                    varchar(10) NOT NULL,
     standalone_price        int, --in Polish grosz
     translator_id           int,

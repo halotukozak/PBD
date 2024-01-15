@@ -2,7 +2,6 @@ package org.oolab.model
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigValue
 import io.github.serpro69.kfaker.faker
 import model.*
 import mu.KotlinLogging
@@ -11,6 +10,8 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.oolab.model.model.Languages
+import org.oolab.model.model.TranslatorLanguage
 
 suspend fun main() {
   val logger = KotlinLogging.logger("Main")
@@ -25,12 +26,15 @@ suspend fun main() {
 
   logger.info { "Config loaded" }
 
-  Database.connect(
-    url = dbConfig.getString("url"),
-    driver = dbConfig.getString("driver"),
-    user = dbConfig.getString("user"),
-    password = dbConfig.getString("password")
-  )
+  val connect = {
+    Database.connect(
+      url = dbConfig.getString("url"),
+      driver = dbConfig.getString("driver"),
+      user = dbConfig.getString("user"),
+      password = dbConfig.getString("password")
+    )
+  }
+  connect()
 
   logger.info { "Database connected" }
 
@@ -55,6 +59,8 @@ suspend fun main() {
     Subjects,
     Teachers,
     Translators,
+    Languages,
+    TranslatorLanguage,
     Webinars,
     Students,
     StudentSemesters,
@@ -92,17 +98,22 @@ suspend fun main() {
 
   logger.info { "Schemas checked" }
 
-  val tableNamesToDrop = dbConfig.getList("tablesToDrop").map(ConfigValue::render)
-  tables.filter { it.tableName in tableNamesToDrop }.forEach {
-    it::deleteAll.now()
-    require(it.selectAll()::empty.now()) {
-      "Table ${it.tableName} is not empty"
+//  val tableNamesToDrop = dbConfig.getList("tablesToDrop").map(ConfigValue::render)
+  if (dbConfig.getBoolean("drop")) {
+    tables.forEach {
+      it::deleteAll.now()
+      require(it.selectAll()::empty.now()) {
+        "Table ${it.tableName} is not empty"
+      }
     }
+    logger.info { "Tables cleared" }
   }
-  logger.info { "Tables cleared" }
 
 
-  val insertManager = InsertManager(faker, fakerConfig)
+  val insertManager = InsertManager(faker, fakerConfig) {
+    connect()
+    logger.info { "Database reconnected" }
+  }
 
   logger.info { "InsertManager initialized" }
 
@@ -154,7 +165,7 @@ suspend fun main() {
   val studentStudies = insertManager.insertStudentStudies()
   logger.info { "$studentStudies StudentStudies inserted" }
   val languageTranslators = insertManager.insertTranslatorLanguage()
-  logger.info { "$languageTranslators LanguageTranslators inserted" }
+  logger.info { "$languageTranslators TranslatorLanguage inserted" }
 }
 
 fun <T> (() -> T).now(): T = transaction { this@now() }

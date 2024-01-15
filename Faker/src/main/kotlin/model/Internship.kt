@@ -26,7 +26,7 @@ object StudentInternship : Table("StudentInternship") {
   val studentId = integer("student_id").references(Students.id, onDelete = ReferenceOption.CASCADE)
   val internshipId = integer("internship_id").references(Internships.id, onDelete = ReferenceOption.CASCADE)
   val attendedDays = integer("attended_days").default(0)
-  val examResult = integer("exam_result")
+  val examResult = integer("exam_result").nullable()
 
   override val primaryKey: PrimaryKey = PrimaryKey(studentId, internshipId)
 
