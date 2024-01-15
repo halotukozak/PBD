@@ -676,9 +676,6 @@ BEGIN
     WHERE student_id = @student_id AND meeting_id = @meeting_id;
 END;
 GO
--- EXEC register_meeting_payment 17, 23
-
-
 
 CREATE PROCEDURE enroll_student_for_course
     @student_id INT,
@@ -691,7 +688,6 @@ BEGIN
     VALUES (@student_id, @course_id, @advance_payment_date, @full_payment_date);
 END;
 GO
--- EXEC enroll_student_for_course 17, 23, @advance_payment_date = '2021-01-01 12:00:00'
 
 CREATE PROCEDURE disenroll_student_from_course
     @student_id INT,
@@ -702,7 +698,6 @@ BEGIN
     WHERE student_id = @student_id AND course_id = @course_id;
 END;
 GO
--- EXEC disenroll_student_from_course 17, 23
 
 CREATE PROCEDURE register_course_payment
     @student_id INT,
