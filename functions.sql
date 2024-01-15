@@ -11,8 +11,6 @@ BEGIN
             ORDER BY date DESC);
 END;
 GO
--- SELECT dbo.get_parameter('availability_period_in_days') AS 'parameter'
-
 
 CREATE FUNCTION is_internship_finished(
     @student_id INT
@@ -32,8 +30,6 @@ BEGIN
     RETURN @result;
 END;
 GO
--- SELECT dbo.is_internship_finished(348) AS 'finished'
-
 
 CREATE FUNCTION was_present_on_meeting(
     @student_id INT,
@@ -54,8 +50,6 @@ BEGIN
     RETURN @result;
 END;
 GO
--- SELECT dbo.was_present_on_meeting(348, 1) AS 'present'
-
 
 CREATE FUNCTION get_student_info(
     @student_id INT
@@ -95,8 +89,6 @@ CREATE FUNCTION get_translator_info(
                 WHERE id = @translator_id
             );
 GO
--- SELECT * FROM dbo.get_student_data(348)
-
 
 CREATE FUNCTION get_last_semester(
     @study_id INT
@@ -110,7 +102,6 @@ BEGIN
             ORDER BY number DESC);
 END;
 GO
--- SELECT dbo.get_last_semester(1) AS 'semester'
 
 CREATE FUNCTION is_enrolled_on_studies(
     @student_id INT,
@@ -131,7 +122,6 @@ BEGIN
     RETURN @result;
 END;
 GO
--- SELECT dbo.is_on_studies(348, 1) AS 'on_studies'
 
 CREATE FUNCTION get_studies_of_semester(
     @semester_id INT
@@ -144,7 +134,6 @@ BEGIN
             WHERE id = @semester_id);
 END;
 GO
--- SELECT dbo.get_studies_of_semester(1) AS 'studies'
 
 CREATE FUNCTION get_student_basket(
     @student_id INT
@@ -159,7 +148,6 @@ BEGIN
             ORDER BY create_date DESC);
 END;
 GO
--- SELECT dbo.get_students_basket(348) AS 'basket'
 
 CREATE FUNCTION get_basket_items(
     @basket_id INT
@@ -172,4 +160,3 @@ CREATE FUNCTION get_basket_items(
                 WHERE basket_id = @basket_id
             );
 GO
--- SELECT * FROM dbo.get_basket_items(3)
