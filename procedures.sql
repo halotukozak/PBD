@@ -37,9 +37,6 @@ BEGIN
     VALUES (@first_name, @last_name, @address, @email, @phone, @language);
 END;
 GO
--- EXEC add_student 'Bartłomiej', 'Kozak', 'Kraków', 'kozakk@student.agh.edu.pl', '123321123'
-
-
 
 CREATE PROCEDURE update_student
     @student_id INT,
@@ -173,9 +170,6 @@ BEGIN
         END
 END;
 GO
--- EXEC update_student 17,  @address = 'New address';
-
-
 
 CREATE PROCEDURE add_webinar
     @title VARCHAR(50),
@@ -196,7 +190,6 @@ BEGIN
     VALUES (@title, @date, @teacher_id, @url, @price, @language, @translator_id);
 END;
 GO
--- EXEC add_webinar 'Webinar 1', '2019-01-01 12:00:00', 1, 'https://www.youtube.com/watch?v=1', 10000
 
 CREATE PROCEDURE update_webinar
     @webinar_id INT,
@@ -253,9 +246,6 @@ BEGIN
         END
 END;
 GO
--- EXEC update_webinar 1, @url = 'https://www.youtube.com/watch?v=2', @teacher_id = 2
-
-
 
 CREATE PROCEDURE add_course
     @title VARCHAR(50),
@@ -275,7 +265,6 @@ BEGIN
     VALUES (@title, @student_limit, @price, @advance_price, @language, @subject);
 END;
 GO
--- EXEC add_course 'C#', 10, 50000, 500, 'English', 'Programming'
 
 CREATE PROCEDURE update_course
     @course_id INT,
@@ -325,9 +314,6 @@ BEGIN
         END
 END;
 GO
--- EXEC update_course 1, @title = 'C++', @price = 5000
-
-
 
 CREATE PROCEDURE add_module
     @course_id INT,
@@ -340,7 +326,6 @@ BEGIN
     VALUES (@course_id, @teacher_id, @type, @room_id);
 END;
 GO
--- EXEC add_module 12, 23, 'in_person', 17
 
 CREATE PROCEDURE update_module
     @module_id INT,
@@ -390,9 +375,6 @@ BEGIN
         END
 END;
 GO
--- EXEC update_module 1, @type = 'online_sync'
-
-
 
 CREATE PROCEDURE add_studies
     @title VARCHAR(50),
@@ -410,7 +392,6 @@ BEGIN
     VALUES (@title, @student_limit, @price, @advance_price, @syllabus, @language);
 END;
 GO
--- EXEC add_studies 'Math', 150, 400000, 50000, 'we will be learning algebra'
 
 CREATE PROCEDURE update_studies
     @studies_id INT,
@@ -460,9 +441,6 @@ BEGIN
         END
 END;
 GO
--- EXEC update_studies 1, @syllabus = 'We will be learning geometry'
-
-
 
 CREATE PROCEDURE add_semester
     @studies_id INT,
@@ -479,7 +457,6 @@ BEGIN
     VALUES (@studies_id, @number, @start_date, @end_date, @schedule);
 END;
 GO
--- EXEC add_semester 1, '2020-10-01', '2021-01-01'
 
 CREATE PROCEDURE update_semester
     @semester_id INT,
@@ -522,9 +499,6 @@ BEGIN
         END
 END;
 GO
--- EXEC update_semester 17, @end_date =  '2021-01-01', @schedule = 'https://web.usos.agh.edu.pl/kontroler.php?_action=home/plan'
-
-
 
 CREATE PROCEDURE add_subject
     @name VARCHAR(200),
@@ -537,7 +511,6 @@ BEGIN
     VALUES (@name, @semester_id, @teacher_id, @room_id);
 END;
 GO
--- EXEC add_subject 'Bazy danych', 17, 1
 
 CREATE PROCEDURE update_subject
     @subject_id INT,
@@ -573,9 +546,6 @@ BEGIN
         END
 END;
 GO
--- EXEC update_subject 17, @name = 'Programowanie obiektowe', @teacher_id = 23
-
-
 
 CREATE PROCEDURE add_meeting
     @module_id INT = NULL,
@@ -594,7 +564,6 @@ BEGIN
     VALUES (@module_id, @subject_id, @date, @student_limit, @type, @url, @substituting_room_id, @substituting_teacher_id, @translator_id, @standalone_price);
 END;
 GO
--- EXEC add_meeting @module_id = 1, @date = '2021-01-01 12:00:00', @student_limit = 20, @type = 'in_person'
 
 CREATE PROCEDURE update_meeting
     @meeting_id INT,
@@ -674,9 +643,6 @@ BEGIN
         END
 END;
 GO
--- EXEC update_meeting 1, @substituting_teacher_id = 27, @substituting_room_id = 17
-
-
 
 CREATE PROCEDURE enroll_student_for_meeting
     @student_id INT,
@@ -688,9 +654,8 @@ BEGIN
     VALUES (@student_id, @meeting_id, @payment_date);
 END;
 GO
--- EXEC enroll_student_for_meeting 17, 23, '2021-01-01 12:00:00'
 
-CREATE PROCEDURE dis_enroll_student_from_meeting
+CREATE PROCEDURE disenroll_student_from_meeting
     @student_id INT,
     @meeting_id INT
 AS
@@ -699,7 +664,6 @@ BEGIN
     WHERE student_id = @student_id AND meeting_id = @meeting_id;
 END;
 GO
--- EXEC dis_enroll_student_from_meeting 17, 23
 
 CREATE PROCEDURE register_meeting_payment
     @student_id INT,
@@ -729,7 +693,7 @@ END;
 GO
 -- EXEC enroll_student_for_course 17, 23, @advance_payment_date = '2021-01-01 12:00:00'
 
-CREATE PROCEDURE dis_enroll_student_from_course
+CREATE PROCEDURE disenroll_student_from_course
     @student_id INT,
     @course_id INT
 AS
@@ -738,7 +702,7 @@ BEGIN
     WHERE student_id = @student_id AND course_id = @course_id;
 END;
 GO
--- EXEC dis_enroll_student_from_course 17, 23
+-- EXEC disenroll_student_from_course 17, 23
 
 CREATE PROCEDURE register_course_payment
     @student_id INT,
@@ -753,9 +717,6 @@ BEGIN
     WHERE student_id = @student_id AND course_id = @course_id;
 END;
 GO
--- EXEC register_course_payment 17, 23
-
-
 
 CREATE PROCEDURE enroll_student_for_studies
     @student_id INT,
@@ -767,9 +728,8 @@ BEGIN
     VALUES (@student_id, @studies_id, @registration_payment_date);
 END;
 GO
--- EXEC enroll_student_for_studies 17, 23, @registration_payment_date = '2021-01-01 12:00:00'
 
-CREATE PROCEDURE dis_enroll_student_from_studies
+CREATE PROCEDURE disenroll_student_from_studies
     @student_id INT,
     @studies_id INT
 AS
@@ -783,7 +743,6 @@ BEGIN
     WHERE student_id = @student_id;
 END;
 GO
--- EXEC dis_enroll_student_from_studies 17, 23
 
 CREATE PROCEDURE register_studies_payment
     @student_id INT,
@@ -796,7 +755,6 @@ BEGIN
     WHERE student_id = @student_id AND studies_id = @studies_id;
 END;
 GO
--- EXEC register_studies_payment 17, 23
 
 CREATE PROCEDURE send_graduation_certificate
     @student_id INT,
@@ -809,9 +767,6 @@ BEGIN
     WHERE student_id = @student_id AND studies_id = @studies_id;
 END;
 GO
--- EXEC send_graduation_certificate 17, 23
-
-
 
 CREATE PROCEDURE enroll_student_for_webinar
     @student_id INT,
@@ -823,9 +778,8 @@ BEGIN
     VALUES (@student_id, @webinar_id, @payment_date);
 END;
 GO
--- EXEC enroll_student_for_webinar 17, 23, @payment_date = '2021-01-01 12:00:00'
 
-CREATE PROCEDURE dis_enroll_student_from_webinar
+CREATE PROCEDURE disenroll_student_from_webinar
     @student_id INT,
     @webinar_id INT
 AS
@@ -834,7 +788,6 @@ BEGIN
     WHERE student_id = @student_id AND webinar_id = @webinar_id;
 END;
 GO
--- EXEC dis_enroll_student_from_webinar 17, 23
 
 CREATE PROCEDURE register_webinar_payment
     @student_id INT,
@@ -847,9 +800,6 @@ BEGIN
     WHERE student_id = @student_id AND webinar_id = @webinar_id;
 END;
 GO
--- EXEC register_webinar_payment 17, 23
-
-
 
 CREATE PROCEDURE enroll_student_for_semester
     @student_id INT,
@@ -861,9 +811,8 @@ BEGIN
     VALUES (@student_id, @semester_id, @payment_date);
 END;
 GO
--- EXEC enroll_student_for_semester 17, 23
 
-CREATE PROCEDURE dis_enroll_student_from_semester
+CREATE PROCEDURE disenroll_student_from_semester
     @student_id INT,
     @semester_id INT
 AS
@@ -872,7 +821,6 @@ BEGIN
     WHERE student_id = @student_id AND semester_id = @semester_id;
 END;
 GO
--- EXEC dis_enroll_student_from_semester 17, 23
 
 CREATE PROCEDURE register_semester_payment
     @student_id INT,
@@ -885,9 +833,6 @@ BEGIN
     WHERE student_id = @student_id AND semester_id = @semester_id;
 END;
 GO
--- EXEC register_semester_payment 17, 23, @payment_date = '2021-01-01 12:00:00'
-
-
 
 CREATE PROCEDURE enroll_student_for_internship
     @student_id INT,
@@ -898,9 +843,8 @@ BEGIN
     VALUES (@student_id, @internship_id);
 END;
 GO
--- EXEC enroll_student_for_internship 17, 23
 
-CREATE PROCEDURE dis_enroll_student_from_internship
+CREATE PROCEDURE disenroll_student_from_internship
     @student_id INT,
     @internship_id INT
 AS
@@ -909,7 +853,6 @@ BEGIN
     WHERE student_id = @student_id AND internship_id = @internship_id;
 END;
 GO
--- EXEC dis_enroll_student_from_internship 17, 23
 
 CREATE PROCEDURE register_internship_attendance
     @student_id INT,
@@ -921,7 +864,6 @@ BEGIN
     WHERE student_id = @student_id AND internship_id = @internship_id;
 END;
 GO
--- EXEC log_internship_attendance 17, 23
 
 CREATE PROCEDURE register_internship_exam_result
     @student_id INT,
@@ -934,9 +876,6 @@ BEGIN
     WHERE student_id = @student_id AND internship_id = @internship_id;
 END;
 GO
--- EXEC set_internship_exam_result 17, 23, 60
-
-
 
 CREATE PROCEDURE register_meeting_attendance
     @student_id INT,
@@ -947,9 +886,6 @@ BEGIN
     VALUES (@student_id, @meeting_id);
 END;
 GO
--- EXEC log_meeting_attendance 17, 23
-
-
 
 CREATE PROCEDURE add_parameter
     @name NVARCHAR(50),
@@ -964,10 +900,6 @@ BEGIN
     VALUES (@name, @value, @date);
 END;
 GO
--- EXEC add_parameter 'TEST PARAMETER', 2, '2019-01-01';
--- EXEC add_parameter 'TEST PARAMETER', 'value';
-
-
 
 CREATE PROCEDURE create_basket
 @student_id INT
@@ -977,7 +909,6 @@ BEGIN
     VALUES (@student_id, 'open', CURRENT_TIMESTAMP);
 END;
 GO
--- EXEC create_basket 17
 
 CREATE PROCEDURE add_item_to_basket
     @student_id INT,
@@ -1020,7 +951,6 @@ BEGIN
         END
 END;
 GO
--- EXEC add_item_to_basket 17, @course_id = 3
 
 CREATE PROCEDURE remove_item_from_basket
     @basket_id INT,
@@ -1055,7 +985,6 @@ BEGIN
         END
 END;
 GO
--- EXEC remove_item_from_basket 35, @course_id = 3
 
 CREATE PROCEDURE register_failed_payment
 @basket_id INT
@@ -1066,7 +995,6 @@ BEGIN
     WHERE id = @basket_id;
 END;
 GO
--- EXEC fail_basket_payment 35
 
 CREATE PROCEDURE register_successful_payment
 @basket_id INT
@@ -1116,30 +1044,3 @@ BEGIN
     WHERE id = @basket_id;
 END;
 GO
--- EXEC approve_basket_payment 35
-
-
-
--- A sonnet in the language of the code,
--- Where tables dance and relationships bode.
-
--- First, select the verses from the dataset,
--- Where rows and columns intertwine, be set.
-
--- Inner join, the lines elegantly blend,
--- Each word connected, relationships transcend.
-
--- Where clauses whisper conditions wise,
--- Filtering stanzas, where the meaning lies.
-
--- Order by, the lines arrange their fate,
--- Ascending or descending, a rhythmic state.
-
--- Group by, a chorus, a harmonious song,
--- Aggregates sing, as data dance along.
-
--- A comment here, a note to self,
--- A code poet's tale, on the database shelf.
-
--- Sixteen lines, a poem complete,
--- In SQL, where data and verses meet.

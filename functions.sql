@@ -112,7 +112,7 @@ END;
 GO
 -- SELECT dbo.get_last_semester(1) AS 'semester'
 
-CREATE FUNCTION enrolled_on_studies(
+CREATE FUNCTION is_enrolled_on_studies(
     @student_id INT,
     @studies_id INT
 )
