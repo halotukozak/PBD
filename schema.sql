@@ -238,11 +238,13 @@ CREATE TABLE Subject
     name        varchar(200) NOT NULL,
     semester_id int          NOT NULL,
     teacher_id  int,
+    room_id     int,
 
     PRIMARY KEY (id),
 
     FOREIGN KEY (semester_id) REFERENCES Semester (id) ON DELETE CASCADE,
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE SET NULL,
+    FOREIGN KEY (room_id) REFERENCES Room (id) ON DELETE SET NULL,
 )
 
 CREATE TABLE Internship
@@ -282,6 +284,7 @@ CREATE TABLE Meeting
     standalone_price        int, --in Polish grosz
     translator_id           int,
     substituting_teacher_id int DEFAULT NULL,
+    substituting_room_id    int DEFAULT NULL,
     student_limit           int         NOT NULL,
 
     PRIMARY KEY (id),
@@ -290,6 +293,7 @@ CREATE TABLE Meeting
     FOREIGN KEY (subject_id) REFERENCES Subject (id) ON DELETE NO ACTION,
     FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
     FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
+    FOREIGN KEY (substituting_room_id) REFERENCES Room (id) ON DELETE NO ACTION,
 
     CONSTRAINT polymorphic CHECK (
         module_id IS NOT NULL AND subject_id IS NULL OR
