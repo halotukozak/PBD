@@ -192,6 +192,7 @@ CREATE TABLE Semester
     id           int          NOT NULL IDENTITY (1, 1),
     number       int          NOT NULL,
     studies_id   int          NOT NULL,
+    price        int          NOT NULL, --in Polish grosz
     schedule_url varchar(200) NOT NULL,
     start_date   date         NOT NULL,
     end_date     date         NOT NULL,
