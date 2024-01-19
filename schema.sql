@@ -173,13 +173,12 @@ CREATE TABLE Module
 
 CREATE TABLE Studies
 (
-    id            int                          NOT NULL IDENTITY (1, 1),
-    title         varchar(100)                 NOT NULL,
-    syllabus      varchar(5000),
-    price         int                          NOT NULL, --in Polish grosz
-    advance_price int                          NOT NULL, --in Polish grosz
-    language      varchar(50) DEFAULT 'Polish' NOT NULL,
-    student_limit int                          NOT NULL,
+    id                 int                          NOT NULL IDENTITY (1, 1),
+    title              varchar(100)                 NOT NULL,
+    syllabus           varchar(5000),
+    registration_price int                          NOT NULL, --in Polish grosz
+    language           varchar(50) DEFAULT 'Polish' NOT NULL,
+    student_limit      int                          NOT NULL,
 
     PRIMARY KEY (id),
 
