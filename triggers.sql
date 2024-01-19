@@ -67,3 +67,109 @@ BEGIN
 END
 
 GO
+
+CREATE TRIGGER student_exam_result
+    ON StudentInternship
+    AFTER INSERT, UPDATE
+    AS
+BEGIN
+    DECLARE @attended_days int;
+    DECLARE @internship_required_attendance int;
+    SELECT @attended_days = (SELECT attended_days
+                             FROM inserted);
+    --TODO
+    --Use here function to get the value of the parameter
+    SELECT @internship_required_attendance = (SELECT TOP 1 value
+                                              FROM Parameter
+                                              WHERE name LIKE @internship_required_attendance
+                                                AND date <= CURRENT_TIMESTAMP
+                                              ORDER BY date DESC)
+
+    IF @attended_days < @internship_required_attendance
+        BEGIN
+            RAISERROR ('Student must attend the required minimum days of internship', 16, 1);
+        END
+END
+
+GO
+
+
+CREATE TRIGGER check_open_baskets
+    ON Basket
+    AFTER INSERT, UPDATE
+    AS
+BEGIN
+    DECLARE @student_id int;
+    SELECT @student_id = (SELECT student_id FROM inserted);
+    IF EXISTS (SELECT 1
+               FROM Basket
+               WHERE student_id = @student_id
+                 AND state = 'open')
+        BEGIN
+            RAISERROR ('Student can only have one open basket at a time', 16, 1);
+        END
+END;
+
+GO
+
+CREATE TRIGGER check_webinar_translator_language
+    ON Webinar
+    AFTER INSERT, UPDATE
+    AS
+BEGIN
+    DECLARE @webinar_language_id int;
+    DECLARE @translator_id int;
+
+    SELECT @webinar_language_id = (SELECT id FROM Language WHERE name = (SELECT language FROM inserted));
+    SELECT @translator_id = (SELECT translator_id
+                             FROM TranslatorLanguage
+                             WHERE translator_id = (SELECT translator_id FROM inserted)
+                               AND language_id = @webinar_language_id);
+
+    IF @translator_id IS NULL AND (SELECT translator_id FROM inserted) IS NOT NULL
+        BEGIN
+            RAISERROR ('The language of the translator must be the same as the language of the webinar.', 16, 1);
+        END
+END;
+
+GO
+
+CREATE TRIGGER check_meeting_translator_language
+    ON Meeting
+    AFTER INSERT, UPDATE
+    AS
+BEGIN
+    DECLARE @required_language varchar(50);
+    DECLARE @required_language_id int;
+    DECLARE @translator_id int;
+
+
+    IF (SELECT subject_id FROM inserted) IS NOT NULL
+        BEGIN
+            SELECT @required_language = (SELECT S.language
+                                         FROM inserted I
+                                                  INNER JOIN Subject SU ON I.subject_id = SU.id
+                                                  INNER JOIN Semester SE ON SU.semester_id = SE.id
+                                                  INNER JOIN Studies S ON SE.studies_id = S.id);
+            SELECT @required_language_id = (SELECT id FROM Language WHERE name = @required_language);
+        END
+    ELSE
+        BEGIN
+            SELECT @required_language = C.language
+            FROM inserted I
+                     INNER JOIN Module M ON I.module_id = M.id
+                     INNER JOIN Course C ON M.course_id = C.id;
+            SELECT @required_language_id = (SELECT id FROM Language WHERE name = @required_language);
+        END
+
+    SELECT @translator_id = (SELECT translator_id
+                             FROM TranslatorLanguage
+                             WHERE translator_id = (SELECT translator_id FROM inserted)
+                               AND language_id = @required_language_id);
+    IF @translator_id IS NULL AND (SELECT translator_id FROM inserted) IS NOT NULL
+        BEGIN
+            RAISERROR ('The language of the translator must be the same as the required language.', 16, 1);
+        END
+END
+
+GO

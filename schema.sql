@@ -22,8 +22,8 @@ EXEC sp_executesql @Sql;
 CREATE TABLE Student
 (
     id           int          NOT NULL IDENTITY (1, 1),
-    name         varchar(50)  NOT NULL,
-    surname      varchar(50)  NOT NULL,
+    first_name   varchar(50)  NOT NULL,
+    last_name    varchar(50)  NOT NULL,
     address      varchar(200) NOT NULL,
     email        varchar(50)  NOT NULL UNIQUE,
     phone_number varchar(20)  NOT NULL UNIQUE,
@@ -34,8 +34,8 @@ CREATE TABLE Student
 CREATE TABLE Teacher
 (
     id           int          NOT NULL IDENTITY (1, 1),
-    name         varchar(50)  NOT NULL,
-    surname      varchar(50)  NOT NULL,
+    first_name   varchar(50)  NOT NULL,
+    last_name    varchar(50)  NOT NULL,
     address      varchar(200) NOT NULL,
     email        varchar(50)  NOT NULL UNIQUE,
     phone_number varchar(20)  NOT NULL UNIQUE,
@@ -46,9 +46,8 @@ CREATE TABLE Teacher
 CREATE TABLE Translator
 (
     id           int          NOT NULL IDENTITY (1, 1),
-    language     varchar(50)  NOT NULL,
-    name         varchar(50)  NOT NULL,
-    surname      varchar(50)  NOT NULL,
+    first_name   varchar(50)  NOT NULL,
+    last_name    varchar(50)  NOT NULL,
     address      varchar(200) NOT NULL,
     email        varchar(50)  NOT NULL UNIQUE,
     phone_number varchar(20)  NOT NULL UNIQUE,
@@ -56,11 +55,31 @@ CREATE TABLE Translator
     PRIMARY KEY (id),
 )
 
+CREATE TABLE Language
+(
+    id   int         NOT NULL IDENTITY (1, 1),
+    name varchar(50) NOT NULL UNIQUE,
+
+    PRIMARY KEY (id),
+)
+
+CREATE TABLE TranslatorLanguage
+(
+    translator_id int NOT NULL,
+    language_id   int NOT NULL,
+
+    PRIMARY KEY (translator_id, language_id),
+
+    FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE CASCADE,
+    FOREIGN KEY (language_id) REFERENCES Language (id) ON DELETE CASCADE,
+)
+
 CREATE TABLE Webinar
 (
     id            int                          NOT NULL IDENTITY (1, 1),
+    title         varchar(100)                 NOT NULL,
     price         int         DEFAULT 0        NOT NULL, --in Polish grosz
-    date          date                         NOT NULL,
+    datetime      datetime                     NOT NULL,
     url           varchar(200)                 NOT NULL UNIQUE,
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
     translator_id int,
@@ -89,6 +108,7 @@ CREATE TABLE StudentWebinar
 CREATE TABLE Course
 (
     id            int                          NOT NULL IDENTITY (1, 1),
+    title         varchar(100)                 NOT NULL,
     price         int                          NOT NULL, --in Polish grosz
     advance_price int                          NOT NULL, --in Polish grosz
     subject       varchar(100)                 NOT NULL,
@@ -154,6 +174,7 @@ CREATE TABLE Module
 CREATE TABLE Studies
 (
     id            int                          NOT NULL IDENTITY (1, 1),
+    title         varchar(100)                 NOT NULL,
     syllabus      varchar(5000),
     price         int                          NOT NULL, --in Polish grosz
     advance_price int                          NOT NULL, --in Polish grosz
@@ -217,11 +238,13 @@ CREATE TABLE Subject
     name        varchar(200) NOT NULL,
     semester_id int          NOT NULL,
     teacher_id  int,
+    room_id     int,
 
     PRIMARY KEY (id),
 
     FOREIGN KEY (semester_id) REFERENCES Semester (id) ON DELETE CASCADE,
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE SET NULL,
+    FOREIGN KEY (room_id) REFERENCES Room (id) ON DELETE SET NULL,
 )
 
 CREATE TABLE Internship
@@ -235,14 +258,13 @@ CREATE TABLE Internship
     FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE CASCADE,
 )
 
-CREATE TABLE InternshipStudent
+CREATE TABLE StudentInternship
 (
     student_id    int           NOT NULL,
     internship_id int           NOT NULL,
     attended_days int DEFAULT 0 NOT NULL,
-    exam_result   int           NOT NULL,
-
-    PRIMARY KEY (student_id, internship_id),
+    exam_result   int,
+        PRIMARY KEY (student_id, internship_id),
 
     FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
     FOREIGN KEY (internship_id) REFERENCES Internship (id) ON DELETE CASCADE,
@@ -257,11 +279,12 @@ CREATE TABLE Meeting
     module_id               int,
     subject_id              int,
     url                     varchar(200),
-    date                    date        NOT NULL,
+    datetime                datetime    NOT NULL,
     type                    varchar(10) NOT NULL,
     standalone_price        int, --in Polish grosz
     translator_id           int,
     substituting_teacher_id int DEFAULT NULL,
+    substituting_room_id    int DEFAULT NULL,
     student_limit           int         NOT NULL,
 
     PRIMARY KEY (id),
@@ -270,6 +293,7 @@ CREATE TABLE Meeting
     FOREIGN KEY (subject_id) REFERENCES Subject (id) ON DELETE NO ACTION,
     FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
     FOREIGN KEY (substituting_teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
+    FOREIGN KEY (substituting_room_id) REFERENCES Room (id) ON DELETE NO ACTION,
 
     CONSTRAINT polymorphic CHECK (
         module_id IS NOT NULL AND subject_id IS NULL OR

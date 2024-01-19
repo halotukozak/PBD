@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
 
 object Courses : IntIdTable("Course") {
+  val title = varchar("title", 100)
   val price = integer("price")
   val advancePrice = integer("advance_price")
   val subject = varchar("subject", 100)
@@ -23,6 +24,7 @@ object Courses : IntIdTable("Course") {
 class Course(id: EntityID<Int>) : IntEntity(id) {
   companion object : IntEntityClass<Course>(Courses)
 
+  var title by Courses.title
   var price by Courses.price
   var advancePrice by Courses.advancePrice
   var subject by Courses.subject
