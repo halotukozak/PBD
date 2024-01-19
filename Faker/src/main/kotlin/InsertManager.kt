@@ -276,11 +276,11 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config, val recon
   }.countNotNull()
 
   suspend fun insertParameters(): Int = listOf(
+    "internship_length" to 14,
+    "internship_required_attendance" to 100,
+    "internship_exam_required_result" to 50,
     "availability_period" to 30,
     "module_completion_threshold" to 80,
-    "internship_completion_threshold" to 80,
-    "internship_length" to 14,
-    "internship_completion_threshold" to 100,
     "custom" to "¯\\_(ツ)_/¯",
     "some_date" to LocalDateTime.now(),
   ).flatMap { (_name, _value) ->
