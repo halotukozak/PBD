@@ -109,6 +109,7 @@ BEGIN
             RAISERROR ('Student can only have one open basket at a time', 16, 1);
         END
 END;
+
 GO
 
 CREATE TRIGGER check_webinar_translator_language
@@ -116,19 +117,21 @@ CREATE TRIGGER check_webinar_translator_language
     AFTER INSERT, UPDATE
     AS
 BEGIN
-    DECLARE @webinar_language varchar(50);
-    DECLARE @translator_language varchar(50);
+    DECLARE @webinar_language_id int;
+    DECLARE @translator_id int;
 
-    SELECT @webinar_language = (SELECT language FROM inserted);
-    SELECT @translator_language = (SELECT language
-                                   FROM Translator
-                                   WHERE id = (SELECT translator_id FROM inserted));
+    SELECT @webinar_language_id = (SELECT id FROM Language WHERE name = (SELECT language FROM inserted));
+    SELECT @translator_id = (SELECT translator_id
+                             FROM TranslatorLanguage
+                             WHERE translator_id = (SELECT translator_id FROM inserted)
+                               AND language_id = @webinar_language_id);
 
-    IF @webinar_language <> @translator_language
+    IF @translator_id IS NULL AND (SELECT translator_id FROM inserted) IS NOT NULL
         BEGIN
             RAISERROR ('The language of the translator must be the same as the language of the webinar.', 16, 1);
         END
 END;
+
 GO
 
 CREATE TRIGGER check_meeting_translator_language
@@ -136,20 +139,19 @@ CREATE TRIGGER check_meeting_translator_language
     AFTER INSERT, UPDATE
     AS
 BEGIN
-    DECLARE @translator_language varchar(50);
     DECLARE @required_language varchar(50);
+    DECLARE @required_language_id int;
+    DECLARE @translator_id int;
 
-    SELECT @translator_language = (SELECT language
-                                   FROM Translator
-                                   WHERE id = (SELECT translator_id FROM inserted));
 
     IF (SELECT subject_id FROM inserted) IS NOT NULL
         BEGIN
             SELECT @required_language = (SELECT S.language
-            FROM inserted I
-                     INNER JOIN Subject SU ON I.subject_id = SU.id
-                     INNER JOIN Semester SE ON SU.semester_id = SE.id
-                     INNER JOIN Studies S ON SE.studies_id = S.id);
+                                         FROM inserted I
+                                                  INNER JOIN Subject SU ON I.subject_id = SU.id
+                                                  INNER JOIN Semester SE ON SU.semester_id = SE.id
+                                                  INNER JOIN Studies S ON SE.studies_id = S.id);
+            SELECT @required_language_id = (SELECT id FROM Language WHERE name = @required_language);
         END
     ELSE
         BEGIN
@@ -157,11 +159,17 @@ BEGIN
             FROM inserted I
                      INNER JOIN Module M ON I.module_id = M.id
                      INNER JOIN Course C ON M.course_id = C.id;
+            SELECT @required_language_id = (SELECT id FROM Language WHERE name = @required_language);
         END
 
-    IF @translator_language <> @required_language
+    SELECT @translator_id = (SELECT translator_id
+                             FROM TranslatorLanguage
+                             WHERE translator_id = (SELECT translator_id FROM inserted)
+                               AND language_id = @required_language_id);
+    IF @translator_id IS NULL AND (SELECT translator_id FROM inserted) IS NOT NULL
         BEGIN
             RAISERROR ('The language of the translator must be the same as the required language.', 16, 1);
         END
-END;
+END
+
 GO

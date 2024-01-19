@@ -22,8 +22,8 @@ EXEC sp_executesql @Sql;
 CREATE TABLE Student
 (
     id           int          NOT NULL IDENTITY (1, 1),
-    name         varchar(50)  NOT NULL,
-    surname      varchar(50)  NOT NULL,
+    first_name   varchar(50)  NOT NULL,
+    last_name    varchar(50)  NOT NULL,
     address      varchar(200) NOT NULL,
     email        varchar(50)  NOT NULL UNIQUE,
     phone_number varchar(20)  NOT NULL UNIQUE,
@@ -34,8 +34,8 @@ CREATE TABLE Student
 CREATE TABLE Teacher
 (
     id           int          NOT NULL IDENTITY (1, 1),
-    name         varchar(50)  NOT NULL,
-    surname      varchar(50)  NOT NULL,
+    first_name   varchar(50)  NOT NULL,
+    last_name    varchar(50)  NOT NULL,
     address      varchar(200) NOT NULL,
     email        varchar(50)  NOT NULL UNIQUE,
     phone_number varchar(20)  NOT NULL UNIQUE,
@@ -46,8 +46,8 @@ CREATE TABLE Teacher
 CREATE TABLE Translator
 (
     id           int          NOT NULL IDENTITY (1, 1),
-    name         varchar(50)  NOT NULL,
-    surname      varchar(50)  NOT NULL,
+    first_name   varchar(50)  NOT NULL,
+    last_name    varchar(50)  NOT NULL,
     address      varchar(200) NOT NULL,
     email        varchar(50)  NOT NULL UNIQUE,
     phone_number varchar(20)  NOT NULL UNIQUE,
@@ -79,7 +79,7 @@ CREATE TABLE Webinar
     id            int                          NOT NULL IDENTITY (1, 1),
     title         varchar(100)                 NOT NULL,
     price         int         DEFAULT 0        NOT NULL, --in Polish grosz
-    date          datetime                     NOT NULL,
+    datetime      datetime                     NOT NULL,
     url           varchar(200)                 NOT NULL UNIQUE,
     language      varchar(50) DEFAULT 'Polish' NOT NULL,
     translator_id int,
@@ -90,7 +90,7 @@ CREATE TABLE Webinar
     FOREIGN KEY (translator_id) REFERENCES Translator (id) ON DELETE SET NULL,
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
-    CONSTRAINT not_negative_webinar_price CHECK (price >= 0)
+    CONSTRAINT not_negative_webinar_price CHECK (price >= 0),
 )
 
 CREATE TABLE StudentWebinar
@@ -263,7 +263,7 @@ CREATE TABLE StudentInternship
     student_id    int           NOT NULL,
     internship_id int           NOT NULL,
     attended_days int DEFAULT 0 NOT NULL,
-    exam_result   int
+    exam_result   int,
         PRIMARY KEY (student_id, internship_id),
 
     FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
@@ -279,7 +279,7 @@ CREATE TABLE Meeting
     module_id               int,
     subject_id              int,
     url                     varchar(200),
-    date                    datetime    NOT NULL,
+    datetime                datetime    NOT NULL,
     type                    varchar(10) NOT NULL,
     standalone_price        int, --in Polish grosz
     translator_id           int,
