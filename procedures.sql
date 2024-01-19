@@ -29,12 +29,11 @@ CREATE PROCEDURE add_translator
     @last_name VARCHAR(50),
     @address VARCHAR(200),
     @email VARCHAR(50),
-    @phone VARCHAR(20),
-    @language VARCHAR(50)
+    @phone VARCHAR(20)
 AS
 BEGIN
-    INSERT INTO Translator (first_name, last_name, address, email, phone_number, language)
-    VALUES (@first_name, @last_name, @address, @email, @phone, @language);
+    INSERT INTO Translator (first_name, last_name, address, email, phone_number)
+    VALUES (@first_name, @last_name, @address, @email, @phone);
 END;
 GO
 
@@ -128,8 +127,7 @@ CREATE PROCEDURE update_translator
     @last_name VARCHAR(50) = NULL,
     @address VARCHAR(200) = NULL,
     @email VARCHAR(50) = NULL,
-    @phone VARCHAR(20) = NULL,
-    @language VARCHAR(50) = NULL
+    @phone VARCHAR(20) = NULL
 AS
 BEGIN
     IF @first_name IS NOT NULL
@@ -162,18 +160,12 @@ BEGIN
             SET phone_number = @phone
             WHERE id = @translator_id;
         END
-    IF @language IS NOT NULL
-        BEGIN
-            UPDATE Translator
-            SET language = @language
-            WHERE id = @translator_id;
-        END
 END;
 GO
 
 CREATE PROCEDURE add_webinar
     @title VARCHAR(50),
-    @date DATETIME,
+    @datetime DATETIME,
     @teacher_id INT,
     @url VARCHAR(200),
     @price INT = NULL,
@@ -186,15 +178,15 @@ BEGIN
     IF @language IS NULL
         SET @language = 'Polish';
 
-    INSERT INTO Webinar (title, date, teacher_id, url, price, language, translator_id)
-    VALUES (@title, @date, @teacher_id, @url, @price, @language, @translator_id);
+    INSERT INTO Webinar (title, datetime, teacher_id, url, price, language, translator_id)
+    VALUES (@title, @datetime, @teacher_id, @url, @price, @language, @translator_id);
 END;
 GO
 
 CREATE PROCEDURE update_webinar
     @webinar_id INT,
     @title VARCHAR(50) = NULL,
-    @date DATETIME = NULL,
+    @datetime DATETIME = NULL,
     @teacher_id INT = NULL,
     @url VARCHAR(200) = NULL,
     @price INT = NULL,
@@ -208,10 +200,10 @@ BEGIN
             SET title = @title
             WHERE id = @webinar_id;
         END
-    IF @date IS NOT NULL
+    IF @datetime IS NOT NULL
         BEGIN
             UPDATE Webinar
-            SET date = @date
+            SET datetime = @datetime
             WHERE id = @webinar_id;
         END
     IF @teacher_id IS NOT NULL
@@ -319,11 +311,12 @@ CREATE PROCEDURE add_module
     @course_id INT,
     @teacher_id INT,
     @type VARCHAR(15),
+    @start_date DATE,
     @room_id INT = NULL
 AS
 BEGIN
-    INSERT INTO Module (course_id, teacher_id, type, room_id)
-    VALUES (@course_id, @teacher_id, @type, @room_id);
+    INSERT INTO Module (course_id, teacher_id, type, start_date, room_id)
+    VALUES (@course_id, @teacher_id, @type, @start_date, @room_id);
 END;
 GO
 
@@ -332,6 +325,7 @@ CREATE PROCEDURE update_module
     @course_id INT = NULL,
     @teacher_id INT = NULL,
     @type VARCHAR(15) = NULL,
+    @start_date DATE = NULL,
     @room_id INT = NULL
 AS
 BEGIN
@@ -367,6 +361,12 @@ BEGIN
             SET type = @type
             WHERE id = @module_id;
         END
+    IF @start_date IS NOT NULL
+        BEGIN
+            UPDATE Module
+            SET start_date = @start_date
+            WHERE id = @module_id;
+        END
     IF @room_id IS NOT NULL
         BEGIN
             UPDATE Module
@@ -379,8 +379,7 @@ GO
 CREATE PROCEDURE add_studies
     @title VARCHAR(50),
     @student_limit INT,
-    @price INT,
-    @advance_price INT = NULL,
+    @registration_price INT = NULL,
     @syllabus VARCHAR(5000) = NULL,
     @language VARCHAR(50) = NULL
 AS
@@ -388,8 +387,8 @@ BEGIN
     IF @language IS NULL
         SET @language = 'Polish';
 
-    INSERT INTO Studies (title, student_limit, price, advance_price, syllabus, language)
-    VALUES (@title, @student_limit, @price, @advance_price, @syllabus, @language);
+    INSERT INTO Studies (title, student_limit, registration_price, syllabus, language)
+    VALUES (@title, @student_limit, @registration_price, @syllabus, @language);
 END;
 GO
 
@@ -397,8 +396,7 @@ CREATE PROCEDURE update_studies
     @studies_id INT,
     @title VARCHAR(50) = NULL,
     @student_limit INT = NULL,
-    @price INT = NULL,
-    @advance_price INT = NULL,
+    @registration_price INT = NULL,
     @syllabus VARCHAR(5000) = NULL,
     @language VARCHAR(50) = NULL
 AS
@@ -415,16 +413,10 @@ BEGIN
             SET student_limit = @student_limit
             WHERE id = @studies_id;
         END
-    IF @price IS NOT NULL
+    IF @registration_price IS NOT NULL
         BEGIN
             UPDATE Studies
-            SET price = @price
-            WHERE id = @studies_id;
-        END
-    IF @advance_price IS NOT NULL
-        BEGIN
-            UPDATE Studies
-            SET advance_price = @advance_price
+            SET registration_price = @registration_price
             WHERE id = @studies_id;
         END
     IF @syllabus IS NOT NULL
@@ -446,15 +438,16 @@ CREATE PROCEDURE add_semester
     @studies_id INT,
     @start_date DATE,
     @end_date DATE,
-    @schedule VARCHAR(50) = NULL,
+    @price INT,
+    @schedule_url VARCHAR(200) = NULL,
     @number INT = NULL
 AS
 BEGIN
     IF @number IS NULL
         SET @number = dbo.get_last_semester(@studies_id) + 1;
 
-    INSERT INTO Semester (studies_id, number, start_date, end_date, schedule)
-    VALUES (@studies_id, @number, @start_date, @end_date, @schedule);
+    INSERT INTO Semester (studies_id, number, start_date, end_date, price, schedule_url)
+    VALUES (@studies_id, @number, @start_date, @end_date, @price, @schedule_url);
 END;
 GO
 
@@ -463,7 +456,8 @@ CREATE PROCEDURE update_semester
     @studies_id INT = NULL,
     @start_date DATE = NULL,
     @end_date DATE = NULL,
-    @schedule VARCHAR(50) = NULL,
+    @price INT = NULL,
+    @schedule_url VARCHAR(200) = NULL,
     @number INT = NULL
 AS
 BEGIN
@@ -485,10 +479,16 @@ BEGIN
             SET end_date = @end_date
             WHERE id = @semester_id;
         END
-    IF @schedule IS NOT NULL
+    IF @price IS NOT NULL
         BEGIN
             UPDATE Semester
-            SET schedule = @schedule
+            SET price = @price
+            WHERE id = @semester_id;
+        END
+    IF @schedule_url IS NOT NULL
+        BEGIN
+            UPDATE Semester
+            SET schedule_url = @schedule_url
             WHERE id = @semester_id;
         END
     IF @number IS NOT NULL
@@ -550,7 +550,7 @@ GO
 CREATE PROCEDURE add_meeting
     @module_id INT = NULL,
     @subject_id INT = NULL,
-    @date DATETIME,
+    @datetime DATETIME,
     @student_limit INT,
     @type VARCHAR(10),
     @url VARCHAR(200) = NULL,
@@ -560,8 +560,8 @@ CREATE PROCEDURE add_meeting
     @standalone_price INT = NULL
 AS
 BEGIN
-    INSERT INTO Meeting (module_id, subject_id, date, student_limit, type, url, substituting_room_id, substituting_teacher_id, translator_id, standalone_price)
-    VALUES (@module_id, @subject_id, @date, @student_limit, @type, @url, @substituting_room_id, @substituting_teacher_id, @translator_id, @standalone_price);
+    INSERT INTO Meeting (module_id, subject_id, datetime, student_limit, type, url, substituting_room_id, substituting_teacher_id, translator_id, standalone_price)
+    VALUES (@module_id, @subject_id, @datetime, @student_limit, @type, @url, @substituting_room_id, @substituting_teacher_id, @translator_id, @standalone_price);
 END;
 GO
 
@@ -569,7 +569,7 @@ CREATE PROCEDURE update_meeting
     @meeting_id INT,
     @module_id INT = NULL,
     @subject_id INT = NULL,
-    @date DATETIME = NULL,
+    @datetime DATETIME = NULL,
     @student_limit INT = NULL,
     @type VARCHAR(10) = NULL,
     @url VARCHAR(200) = NULL,
@@ -586,10 +586,10 @@ BEGIN
                 subject_id = @subject_id
             WHERE id = @meeting_id;
         END
-    IF @date IS NOT NULL
+    IF @datetime IS NOT NULL
         BEGIN
             UPDATE Meeting
-            SET date = @date
+            SET datetime = @datetime
             WHERE id = @meeting_id;
         END
     IF @student_limit IS NOT NULL
@@ -668,9 +668,12 @@ GO
 CREATE PROCEDURE register_meeting_payment
     @student_id INT,
     @meeting_id INT,
-    @payment_date DATETIME = CURRENT_TIMESTAMP
+    @payment_date DATETIME = NULL
 AS
 BEGIN
+    IF @payment_date IS NULL
+        SET @payment_date = CURRENT_TIMESTAMP
+
     UPDATE StudentMeeting
     SET payment_date = @payment_date
     WHERE student_id = @student_id AND meeting_id = @meeting_id;
@@ -702,10 +705,15 @@ GO
 CREATE PROCEDURE register_course_payment
     @student_id INT,
     @course_id INT,
-    @advance_payment_date DATETIME = CURRENT_TIMESTAMP,
-    @full_payment_date DATETIME = CURRENT_TIMESTAMP
+    @advance_payment_date DATETIME = NULL,
+    @full_payment_date DATETIME = NULL
 AS
 BEGIN
+    IF @advance_payment_date IS NULL
+        SET @advance_payment_date = CURRENT_TIMESTAMP
+    IF @full_payment_date IS NULL
+        SET @full_payment_date = CURRENT_TIMESTAMP
+
     UPDATE StudentCourse
     SET full_payment_date = @full_payment_date,
         advance_payment_date = @advance_payment_date
@@ -742,9 +750,12 @@ GO
 CREATE PROCEDURE register_studies_payment
     @student_id INT,
     @studies_id INT,
-    @registration_payment_date DATETIME = CURRENT_TIMESTAMP
+    @registration_payment_date DATETIME = NULL
 AS
 BEGIN
+    IF @registration_payment_date IS NULL
+        SET @registration_payment_date = CURRENT_TIMESTAMP
+
     UPDATE StudentStudies
     SET registration_payment_date = @registration_payment_date
     WHERE student_id = @student_id AND studies_id = @studies_id;
@@ -754,9 +765,12 @@ GO
 CREATE PROCEDURE send_graduation_certificate
     @student_id INT,
     @studies_id INT,
-    @certificate_post_date DATETIME = CURRENT_TIMESTAMP
+    @certificate_post_date DATETIME = NULL
 AS
 BEGIN
+    IF @certificate_post_date IS NULL
+        SET @certificate_post_date = CURRENT_TIMESTAMP
+
     UPDATE StudentStudies
     SET certificate_post_date = @certificate_post_date
     WHERE student_id = @student_id AND studies_id = @studies_id;
@@ -787,9 +801,12 @@ GO
 CREATE PROCEDURE register_webinar_payment
     @student_id INT,
     @webinar_id INT,
-    @payment_date DATETIME = CURRENT_TIMESTAMP
+    @payment_date DATETIME = NULL
 AS
 BEGIN
+    IF @payment_date IS NULL
+        SET @payment_date = CURRENT_TIMESTAMP
+
     UPDATE StudentWebinar
     SET payment_date = @payment_date
     WHERE student_id = @student_id AND webinar_id = @webinar_id;
@@ -820,9 +837,12 @@ GO
 CREATE PROCEDURE register_semester_payment
     @student_id INT,
     @semester_id INT,
-    @payment_date DATETIME = CURRENT_TIMESTAMP
+    @payment_date DATETIME = NULL
 AS
 BEGIN
+    IF @payment_date IS NULL
+        SET @payment_date = CURRENT_TIMESTAMP
+
     UPDATE StudentSemester
     SET payment_date = @payment_date
     WHERE student_id = @student_id AND semester_id = @semester_id;
@@ -834,7 +854,7 @@ CREATE PROCEDURE enroll_student_for_internship
     @internship_id INT
 AS
 BEGIN
-    INSERT INTO InternshipStudent (student_id, internship_id)
+    INSERT INTO StudentInternship (student_id, internship_id)
     VALUES (@student_id, @internship_id);
 END;
 GO
@@ -844,7 +864,7 @@ CREATE PROCEDURE disenroll_student_from_internship
     @internship_id INT
 AS
 BEGIN
-    DELETE FROM InternshipStudent
+    DELETE FROM StudentInternship
     WHERE student_id = @student_id AND internship_id = @internship_id;
 END;
 GO
@@ -854,7 +874,7 @@ CREATE PROCEDURE register_internship_attendance
     @internship_id INT
 AS
 BEGIN
-    UPDATE InternshipStudent
+    UPDATE StudentInternship
     SET attended_days = attended_days + 1
     WHERE student_id = @student_id AND internship_id = @internship_id;
 END;
@@ -866,7 +886,7 @@ CREATE PROCEDURE register_internship_exam_result
     @exam_result INT
 AS
 BEGIN
-    UPDATE InternshipStudent
+    UPDATE StudentInternship
     SET exam_result = @exam_result
     WHERE student_id = @student_id AND internship_id = @internship_id;
 END;
@@ -913,12 +933,12 @@ CREATE PROCEDURE add_item_to_basket
     @webinar_id INT = NULL
 AS
 BEGIN
-    DECLARE @basket_id INT = dbo.get_students_basket(@student_id);
+    DECLARE @basket_id INT = dbo.get_student_basket(@student_id);
 
     IF @basket_id IS NULL
         BEGIN
             EXEC create_basket @student_id;
-            SET @basket_id = dbo.get_students_basket(@student_id);
+            SET @basket_id = dbo.get_student_basket(@student_id);
         END
 
     IF @course_id IS NOT NULL
@@ -995,6 +1015,7 @@ CREATE PROCEDURE register_successful_payment
 @basket_id INT
 AS
 BEGIN
+    DECLARE @current_time DATETIME = CURRENT_TIMESTAMP;
     DECLARE @student_id INT = (SELECT student_id FROM Basket WHERE id = @basket_id)
     DECLARE @current_course INT
     DECLARE @current_meeting INT
@@ -1013,19 +1034,19 @@ BEGIN
         BEGIN
             IF @current_course IS NOT NULL
                 BEGIN
-                    EXEC add_student_to_course @student_id, @current_course, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP;
+                    EXEC enroll_student_for_course @student_id, @current_course, @current_time, @current_time;
                 END
             IF @current_meeting IS NOT NULL
                 BEGIN
-                    EXEC add_student_to_meeting @student_id, @current_meeting, CURRENT_TIMESTAMP;
+                    EXEC enroll_student_for_meeting @student_id, @current_meeting, @current_time;
                 END
             IF @current_studies IS NOT NULL
                 BEGIN
-                    EXEC add_student_to_studies @student_id, @current_studies, CURRENT_TIMESTAMP;
+                    EXEC enroll_student_for_studies @student_id, @current_studies, @current_time;
                 END
             IF @current_webinar IS NOT NULL
                 BEGIN
-                    EXEC add_student_to_webinar @student_id, @current_webinar, CURRENT_TIMESTAMP;
+                    EXEC enroll_student_for_webinar @student_id, @current_webinar, @current_time;
                 END
 
             FETCH NEXT FROM BasketItemCursor INTO @current_course, @current_meeting, @current_studies, @current_webinar

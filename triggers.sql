@@ -8,8 +8,8 @@ CREATE TRIGGER student_webinar_payment_date
 BEGIN
     IF EXISTS (SELECT 1
                FROM inserted
-                        INNER JOIN Webinar w ON webinar_id = w.id
-               WHERE payment_date >= w.date)
+                        INNER JOIN Webinar ON webinar_id = Webinar.id
+               WHERE payment_date >= Webinar.datetime)
         BEGIN
             RAISERROR ('Payment date cannot be later than webinar date', 16, 1);
         END
