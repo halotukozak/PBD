@@ -75,6 +75,69 @@ SELECT TOP 100 PERCENT Meeting.id,
                        (SELECT COUNT(*) FROM dbo.students_enrolled_on_meeting(Meeting.id)) AS enrolled_students,
                        (SELECT COUNT(*) FROM dbo.students_present_on_meeting(Meeting.id))  AS present_students
 FROM Meeting
-WHERE Meeting.datetime > CURRENT_TIMESTAMP
+WHERE Meeting.datetime < CURRENT_TIMESTAMP
 ORDER BY Meeting.id;
+GO
+
+CREATE VIEW student_bilocation_list AS
+SELECT TOP 100 PERCENT id, first_name, last_name
+FROM Student
+WHERE dbo.student_overlapping_meetings(id) = 1
+ORDER BY id;
+GO
+
+CREATE VIEW teacher_bilocation_list AS
+SELECT TOP 100 PERCENT id, first_name, last_name
+FROM Teacher
+WHERE dbo.teacher_overlapping_meetings(id) = 1
+ORDER BY id;
+GO
+
+CREATE VIEW translator_bilocation_list AS
+SELECT TOP 100 PERCENT id, first_name, last_name
+FROM Translator
+WHERE dbo.translator_overlapping_meetings(id) = 1
+ORDER BY id;
+GO
+
+CREATE VIEW master_list AS
+SELECT Student.id, Student.first_name, Student.last_name, Studies.id, Studies.title
+FROM Student
+         INNER JOIN StudentStudies ON StudentStudies.student_id = Student.id AND
+                                      StudentStudies.certificate_post_date IS NOT NULL
+         INNER JOIN Studies ON Studies.id = StudentStudies.studies_id;
+GO
+
+CREATE VIEW graduates_without_diploma AS
+SELECT id, first_name, last_name
+FROM Student
+         INNER JOIN StudentStudies ON Student.id = StudentStudies.student_id AND
+                                      StudentStudies.credit_date IS NOT NULL AND
+                                      StudentStudies.certificate_post_date IS NULL
+
+UNION
+
+SELECT id, first_name, last_name
+FROM Student
+         INNER JOIN StudentCourse ON Student.id = StudentCourse.student_id AND
+                                     StudentCourse.credit_date IS NOT NULL AND
+                                     StudentCourse.certificate_post_date IS NULL;
+GO
+
+CREATE VIEW room_bilocation_list AS
+SELECT TOP 100 PERCENT id, building, number
+FROM Room
+WHERE dbo.room_overlapping_meetings(id) = 1;
+GO
+
+CREATE VIEW pending_payments
+AS
+SELECT Basket.id,
+       CAST(SUM(dbo.basket_item_price(BasketItem.course_id, BasketItem.meeting_id,
+                                 BasketItem.studies_id,
+                                 BasketItem.webinar_id)) / 100.0 AS DECIMAL(10, 2)) AS price
+FROM Basket
+         INNER JOIN BasketItem ON BasketItem.basket_id = Basket.id
+WHERE state = 'pending'
+GROUP BY Basket.id;
 GO

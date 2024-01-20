@@ -223,6 +223,7 @@ CREATE TABLE StudentStudies
     student_id                int  NOT NULL,
     studies_id                int  NOT NULL,
     registration_payment_date date NOT NULL, -- wpisowe
+    credit_date               date,
     certificate_post_date     date,
 
     PRIMARY KEY (student_id, studies_id),
@@ -299,7 +300,8 @@ CREATE TABLE Meeting
 
     CONSTRAINT polymorphic CHECK (
                 module_id IS NOT NULL AND subject_id IS NULL OR
-                module_id IS NULL AND subject_id IS NOT NULL
+                module_id IS NULL AND subject_id IS NOT NULL OR
+                module_id IS NULL AND subject_id IS NULL
         ),
     CONSTRAINT type_and_url CHECK (type = 'in_person' OR type IN ('online', 'video') AND url IS NOT NULL),
     CONSTRAINT positive_student_limit CHECK (student_limit > 0),
