@@ -11,7 +11,8 @@ import org.jetbrains.exposed.sql.javatime.date
 object Semesters : IntIdTable("Semester") {
   val number = integer("number")
   val studiesId = integer("studies_id").references(StudiesTable.id, onDelete = ReferenceOption.NO_ACTION)
-  val schedule_url = varchar("schedule_url", 50)
+  val price = integer("price")
+  val scheduleUrl = varchar("schedule_url", 50)
   val startDate = date("start_date")
   val endDate = date("end_date")
 
@@ -25,7 +26,8 @@ class Semester(id: EntityID<Int>) : IntEntity(id) {
 
   var number by Semesters.number
   var studies by Studies referencedOn Semesters.studiesId
-  var schedule by Semesters.schedule_url
+  var price by Semesters.price
+  var scheduleUrl by Semesters.scheduleUrl
   var startDate by Semesters.startDate
   var endDate by Semesters.endDate
 }

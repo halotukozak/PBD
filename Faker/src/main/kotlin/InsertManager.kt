@@ -44,7 +44,7 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config, val recon
         Meetings.insert {
           if (withModule) it[moduleId] = moduleIds.random() else it[subjectId] = subjectIds.random()
           it[url] = faker.internet.url(domain = faker.pokemon.names(), path = faker.yoda.quotes())
-          it[date] = faker.dateTime()
+          it[datetime] = faker.dateTime()
           it[type] = faker.random.nextEnum<MeetingType>()
           it[standalonePrice] = faker.random.nextInt(20_00..300_00)
           faker.random { it[translatorId] = translatorIds.random() }
@@ -71,6 +71,7 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config, val recon
             else -> null
           }
           it[teacherId] = teacherIds.random()
+          it[startDate] = faker.date()
         }
       }
     }.countNotNull()
@@ -178,7 +179,8 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config, val recon
             Semesters.insert {
               it[number] = i + 1
               it[studiesId] = _studiesId
-              it[schedule_url] =
+              it[price] = faker.random.nextInt(200_00..5000_00)
+              it[scheduleUrl] =
                 faker.internet.url(domain = faker.coffee.blendName(), path = faker.spongebob.quotes()).take(50)
               it[startDate] = _startDate
               it[endDate] = _startDate.plusMonths(6)
@@ -190,13 +192,11 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config, val recon
 
   suspend fun insertStudies(): Int = List(get("studies")) {
     safeTransaction {
-      val _price = faker.random.nextInt(2000_00..50000_00)
       Studies.new {
         title = faker.studiesName()
         syllabus =
           List(faker.random.nextInt(5..30)) { faker.bible.quote() }.reduce { s, other -> "$s $other" }.take(5000)
-        price = _price
-        advancePrice = faker.random.nextInt(0.._price / 3)
+        registrationPrice = faker.random.nextInt(2000_00..50000_00)
         faker.random { language = faker.nation.language() }
         studentLimit = faker.random.nextInt(1..5)
       }
@@ -211,7 +211,7 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config, val recon
         Webinars.insert {
           it[title] = faker.movie.title()
           it[price] = faker.random.nextInt(0..300_00)
-          it[date] = faker.dateTime()
+          it[datetime] = faker.dateTime()
           it[url] = faker.internet.url(domain = faker.witcher.potions(), path = faker.starWars.quote())
           faker.random { it[language] = faker.nation.language() }
           faker.random { it[translatorId] = translatorIds.random() }
@@ -225,8 +225,8 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config, val recon
     safeTransaction {
       val (firstName, lastName) = faker.name.let { it.firstName() to it.lastName() }
       Translator.new {
-        name = firstName
-        surname = lastName
+        this.firstName = firstName
+        this.lastName = lastName
         address = faker.address.fullAddress()
         email = faker.internet.email(firstName, lastName)
         phoneNumber = faker.phoneNumber.cellPhone.number()
@@ -253,8 +253,8 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config, val recon
     safeTransaction {
       val (firstName, lastName) = faker.name.let { it.firstName() to it.lastName() }
       Teacher.new {
-        name = firstName
-        surname = lastName
+        this.firstName = firstName
+        this.lastName = lastName
         address = faker.address.fullAddress()
         email = faker.internet.email(firstName, lastName)
         phoneNumber = faker.phoneNumber.cellPhone.number()
@@ -266,8 +266,8 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config, val recon
     safeTransaction {
       val (firstName, lastName) = faker.name.let { it.firstName() to it.lastName() }
       Student.new {
-        name = firstName
-        surname = lastName
+        this.firstName = firstName
+        this.lastName = lastName
         address = faker.address.fullAddress()
         email = faker.internet.email(firstName, lastName)
         phoneNumber = faker.phoneNumber.cellPhone.number()
@@ -280,7 +280,11 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config, val recon
     "internship_required_attendance" to 100,
     "internship_exam_required_result" to 50,
     "availability_period" to 30,
-    "module_completion_threshold" to 80,
+    "module_completion_threshold" to 10,
+    "studies_attendee_threshold" to 80,
+    "curse_attendee_threshold" to 80,
+    "webinar_minimum_attendees" to 10,
+    "meeting_minimum_attendees" to 10,
     "custom" to "¯\\_(ツ)_/¯",
     "some_date" to LocalDateTime.now(),
   ).flatMap { (_name, _value) ->
@@ -429,6 +433,7 @@ class InsertManager(private val faker: Faker, val fakerConfig: Config, val recon
             it[studentId] = _studentId
             it[studiesId] = _studiesId
             it[registrationPaymentDate] = _registrationPaymentDate
+            faker.random { it[creditDate] = faker.date(_registrationPaymentDate) }
             faker.random { it[certificatePostDate] = faker.date(_registrationPaymentDate) }
           }.also {
             val semesters = Semester.find { Semesters.studiesId eq _studiesId }.map { it.id.value }

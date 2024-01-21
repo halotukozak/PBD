@@ -16,7 +16,7 @@ object Meetings : IntIdTable("Meeting") {
   val moduleId = integer("module_id").references(Modules.id, onDelete = ReferenceOption.NO_ACTION).nullable()
   val subjectId = integer("subject_id").references(Subjects.id, onDelete = ReferenceOption.NO_ACTION).nullable()
   val url = varchar("url", 200).nullable()
-  val date = datetime("date")
+  val datetime = datetime("datetime")
   val type = enumerationByName<MeetingType>("type", 10)
   val standalonePrice = integer("standalone_price").nullable()
   val translatorId =
@@ -38,7 +38,7 @@ class Meeting(id: EntityID<Int>) : IntEntity(id) {
   var module by Module optionalReferencedOn Meetings.moduleId
   var subject by Subject optionalReferencedOn Meetings.subjectId
   var url by Meetings.url
-  var date by Meetings.date
+  var date by Meetings.datetime
   var type by Meetings.type
   var standalonePrice by Meetings.standalonePrice
   var translator by Translator optionalReferencedOn Meetings.translatorId
