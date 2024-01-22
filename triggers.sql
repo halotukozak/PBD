@@ -170,6 +170,41 @@ BEGIN
         BEGIN
             RAISERROR ('The language of the translator must be the same as the required language.', 16, 1);
         END
-END
+END;
+GO
 
+CREATE TRIGGER check_meeting_student_limit
+    ON StudentMeeting
+    AFTER INSERT, UPDATE
+    AS
+BEGIN
+    IF (SELECT COUNT(*) FROM dbo.students_enrolled_on_meeting((SELECT meeting_id FROM inserted))) > (SELECT student_limit FROM Meeting WHERE id = (SELECT meeting_id FROM inserted))
+        BEGIN
+            RAISERROR ('The number of students enrolled on the meeting cannot be higher than the student limit.', 16, 1);
+        END
+END;
+GO
+
+CREATE TRIGGER check_course_student_limit
+    ON StudentCourse
+    AFTER INSERT, UPDATE
+    AS
+BEGIN
+    IF (SELECT COUNT(*) FROM dbo.students_enrolled_on_course((SELECT course_id FROM inserted))) > (SELECT student_limit FROM Course WHERE id = (SELECT course_id FROM inserted))
+        BEGIN
+            RAISERROR ('The number of students enrolled on the course cannot be higher than the student limit.', 16, 1);
+        END
+END;
+GO
+
+CREATE TRIGGER check_studies_student_limit
+    ON StudentStudies
+    AFTER INSERT, UPDATE
+    AS
+BEGIN
+    IF (SELECT COUNT(*) FROM dbo.students_enrolled_on_studies((SELECT studies_id FROM inserted))) > (SELECT student_limit FROM Studies WHERE id = (SELECT studies_id FROM inserted))
+        BEGIN
+            RAISERROR ('The number of students enrolled on the studies cannot be higher than the student limit.', 16, 1);
+        END
+END;
 GO
