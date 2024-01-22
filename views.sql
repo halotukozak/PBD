@@ -138,6 +138,6 @@ SELECT Basket.id,
                                  BasketItem.webinar_id)) / 100.0 AS DECIMAL(10, 2)) AS price
 FROM Basket
          INNER JOIN BasketItem ON BasketItem.basket_id = Basket.id
-WHERE state = 'pending'
+WHERE state = 'pending_payment'
 GROUP BY Basket.id;
 GO
