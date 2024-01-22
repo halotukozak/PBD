@@ -11,6 +11,7 @@ Fundamentals of Databases 2023/2024 – project
   statements
 * The [SQL functions](https://github.com/halotukozak/PBD/blob/main/functions.sql) which contains the CREATE FUNCTION
   statements
+* The [SQL roles](https://github.com/halotukozak/PBD/blob/main/functions.sql) which contains the CREATE ROLE and GRANT EXECUTE statements
 * The [Faker](https://github.com/halotukozak/PBD/tree/main/Faker) which is a project made in Kotlin to generate random
   data.
 

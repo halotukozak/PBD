@@ -1,9 +1,9 @@
 CREATE ROLE system;
-GRANT EXECUTE ON  add_item_to_basket TO system;
-GRANT EXECUTE ON  remove_item_from_basket TO system;
-GRANT EXECUTE ON  register_failed_payment TO system;
+GRANT EXECUTE ON add_item_to_basket TO system;
+GRANT EXECUTE ON remove_item_from_basket TO system;
+GRANT EXECUTE ON register_failed_payment TO system;
 GRANT EXECUTE ON register_successful_payment TO system;
-GRANT EXECUTE ON  send_graduation_certificate TO system;
+GRANT EXECUTE ON send_graduation_certificate TO system;
 
 
 
