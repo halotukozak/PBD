@@ -8,6 +8,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.or
 
 object Modules : IntIdTable("Module") {
@@ -15,6 +16,7 @@ object Modules : IntIdTable("Module") {
   val type = enumerationByName<ModuleType>("type", 10)
   val roomId = integer("room_id").references(Rooms.id, onDelete = ReferenceOption.NO_ACTION).nullable()
   val teacherId = integer("teacher_id").references(Teachers.id, onDelete = ReferenceOption.NO_ACTION)
+  val startDate = date("start_date")
 
   val typeCheck = check {
     (type eq hybrid) or ((type eq in_person) and (roomId neq null)) or ((type inList listOf(
@@ -30,6 +32,7 @@ class Module(id: EntityID<Int>) : IntEntity(id) {
   var type by Modules.type
   var room by Room optionalReferencedOn Modules.roomId
   var teacher by Teacher referencedOn Modules.teacherId
+  var startDate by Modules.startDate
 }
 
 

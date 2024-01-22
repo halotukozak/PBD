@@ -11,13 +11,11 @@ import org.jetbrains.exposed.sql.javatime.date
 object StudiesTable : IntIdTable("Studies") {
   val title = varchar("title", 100)
   val syllabus = varchar("syllabus", 5000).nullable()
-  val price = integer("price")
-  val advancePrice = integer("advance_price")
+  val registrationPrice = integer("registration_price")
   val language = varchar("language", 50).default("Polish")
   val studentLimit = integer("student_limit")
 
-  val priceCheck = check { price greater 0 }
-  val advancePriceCheck = check { advancePrice greaterEq 0 }
+  val registrationPriceCheck = check { registrationPrice greater 0 }
   val studentLimitCheck = check { studentLimit greater 0 }
 }
 
@@ -26,8 +24,7 @@ class Studies(id: EntityID<Int>) : IntEntity(id) {
 
   var title by StudiesTable.title
   var syllabus by StudiesTable.syllabus
-  var price by StudiesTable.price
-  var advancePrice by StudiesTable.advancePrice
+  var registrationPrice by StudiesTable.registrationPrice
   var language by StudiesTable.language
   var studentLimit by StudiesTable.studentLimit
 }

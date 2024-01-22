@@ -157,6 +157,7 @@ CREATE TABLE Module
     type       varchar(15) NOT NULL,
     room_id    int,
     teacher_id int         NOT NULL,
+    start_date date        NOT NULL,
 
     PRIMARY KEY (id),
 
@@ -165,9 +166,9 @@ CREATE TABLE Module
     FOREIGN KEY (teacher_id) REFERENCES Teacher (id) ON DELETE NO ACTION,
 
     CONSTRAINT type_and_room CHECK (
-        type = 'hybrid' OR
-        type = 'in_person' AND room_id IS NOT NULL OR
-        type IN ('online_sync', 'online_async') AND room_id IS NULL
+                type = 'hybrid' OR
+                type = 'in_person' AND room_id IS NOT NULL OR
+                type IN ('online_sync', 'online_async') AND room_id IS NULL
         ),
 )
 
@@ -182,8 +183,7 @@ CREATE TABLE Studies
 
     PRIMARY KEY (id),
 
-    CONSTRAINT positive_studies_price CHECK (price > 0),
-    CONSTRAINT not_negative_advance_studies_price CHECK (advance_price >= 0),
+    CONSTRAINT non_negative_studies_registration_price CHECK (registration_price >= 0),
     CONSTRAINT positive_studies_student_limit CHECK (student_limit > 0),
 )
 
@@ -202,6 +202,7 @@ CREATE TABLE Semester
     FOREIGN KEY (studies_id) REFERENCES Studies (id) ON DELETE NO ACTION,
     CONSTRAINT number_between_1_and_12 CHECK (number > 0 AND number <= 12),
     CONSTRAINT start_date_lower_end_date CHECK (start_date < end_date),
+    CONSTRAINT non_negative_semester_price CHECK (price >= 0),
     UNIQUE (studies_id, number),
 )
 
@@ -222,6 +223,7 @@ CREATE TABLE StudentStudies
     student_id                int  NOT NULL,
     studies_id                int  NOT NULL,
     registration_payment_date date NOT NULL, -- wpisowe
+    credit_date               date,
     certificate_post_date     date,
 
     PRIMARY KEY (student_id, studies_id),
@@ -264,7 +266,7 @@ CREATE TABLE StudentInternship
     internship_id int           NOT NULL,
     attended_days int DEFAULT 0 NOT NULL,
     exam_result   int,
-        PRIMARY KEY (student_id, internship_id),
+    PRIMARY KEY (student_id, internship_id),
 
     FOREIGN KEY (student_id) REFERENCES Student (id) ON DELETE CASCADE,
     FOREIGN KEY (internship_id) REFERENCES Internship (id) ON DELETE CASCADE,
@@ -275,17 +277,18 @@ CREATE TABLE StudentInternship
 
 CREATE TABLE Meeting
 (
-    id                      int         NOT NULL IDENTITY (1, 1),
+    id                      int            NOT NULL IDENTITY (1, 1),
     module_id               int,
     subject_id              int,
     url                     varchar(200),
-    datetime                datetime    NOT NULL,
-    type                    varchar(10) NOT NULL,
-    standalone_price        int, --in Polish grosz
+    datetime                datetime       NOT NULL,
+    length                  int DEFAULT 90 NOT NULL, --in minutes
+    type                    varchar(10)    NOT NULL,
+    standalone_price        int,                     --in Polish grosz
     translator_id           int,
     substituting_teacher_id int DEFAULT NULL,
     substituting_room_id    int DEFAULT NULL,
-    student_limit           int         NOT NULL,
+    student_limit           int            NOT NULL,
 
     PRIMARY KEY (id),
 
@@ -296,8 +299,9 @@ CREATE TABLE Meeting
     FOREIGN KEY (substituting_room_id) REFERENCES Room (id) ON DELETE NO ACTION,
 
     CONSTRAINT polymorphic CHECK (
-        module_id IS NOT NULL AND subject_id IS NULL OR
-        module_id IS NULL AND subject_id IS NOT NULL
+                module_id IS NOT NULL AND subject_id IS NULL OR
+                module_id IS NULL AND subject_id IS NOT NULL OR
+                module_id IS NULL AND subject_id IS NULL
         ),
     CONSTRAINT type_and_url CHECK (type = 'in_person' OR type IN ('online', 'video') AND url IS NOT NULL),
     CONSTRAINT positive_student_limit CHECK (student_limit > 0),
@@ -362,10 +366,10 @@ CREATE TABLE BasketItem
     FOREIGN KEY (webinar_id) REFERENCES Webinar (id),
 
     CONSTRAINT polymorphism CHECK (
-        (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NOT NULL) OR
-        (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NOT NULL AND webinar_id IS NULL) OR
-        (course_id IS NULL AND meeting_id IS NOT NULL AND studies_id IS NULL AND webinar_id IS NULL) OR
-        (course_id IS NOT NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NULL)
+            (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NOT NULL) OR
+            (course_id IS NULL AND meeting_id IS NULL AND studies_id IS NOT NULL AND webinar_id IS NULL) OR
+            (course_id IS NULL AND meeting_id IS NOT NULL AND studies_id IS NULL AND webinar_id IS NULL) OR
+            (course_id IS NOT NULL AND meeting_id IS NULL AND studies_id IS NULL AND webinar_id IS NULL)
         )
 )
 

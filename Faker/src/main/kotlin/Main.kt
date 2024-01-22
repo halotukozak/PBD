@@ -98,7 +98,6 @@ suspend fun main() {
 
   logger.info { "Schemas checked" }
 
-//  val tableNamesToDrop = dbConfig.getList("tablesToDrop").map(ConfigValue::render)
   if (dbConfig.getBoolean("drop")) {
     tables.forEach {
       it::deleteAll.now()
